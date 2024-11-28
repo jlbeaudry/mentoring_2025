@@ -1,0 +1,248 @@
+---
+title: "Researcher Mentoring Program for Early-Career Researchers (2025)"
+# subtitle: "Data Script for Preprocessing the EOIs"
+author: "Jen Beaudry"
+date: "November 2024"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include = FALSE}
+
+# just a reminder that there is no output from this script. It just cleans the data.
+  # do NOT run this along with the other scripts. This is only so I can have a 
+  # quick report of how many people applied in each College. 
+
+
+knitr::opts_chunk$set(echo = FALSE, include = FALSE)
+
+options(knitr.duplicate.label = "allow") # use this when you use the child files
+
+```
+
+```{r library}
+
+library(here)
+library(tidyverse)
+library(xlsx)
+
+source(here("..", "functions", "read_qualtrics.R"))
+source(here("..", "functions", "meta_rename.R"))
+
+```
+
+```{r load data}
+
+# mentor data
+
+df_tor <- here::here("00_data", "raw_data", "eoi_mentor.csv") %>%
+  read_qualtrics(legacy = FALSE) %>%
+  select(-c("start_date":"user_language", "cv_file_id":"cv_file_type")) %>% 
+  filter(!is.na(surname))  %>% # remove anyone that didn't provide their last name
+  mutate(id = 1:n()) %>% 
+  relocate(id, .before = first_name) 
+
+
+# mentee data
+df_tee <- here::here("00_data", "raw_data", "eoi_mentee.csv") %>%
+  read_qualtrics(legacy = FALSE) %>%
+  select(-c("start_date":"user_language", "cv_file_id":"cv_file_type")) %>% 
+  filter(!is.na(surname)) %>% # remove anyone that didn't provide their last name
+  mutate(id = 1:n()) %>%  
+  relocate(id, .before = first_name) 
+
+# load metadata for mentor
+meta_tor <- read_csv(here::here("00_data", "raw_data", "metadata_eoi_mentor.csv"), lazy = FALSE) %>%
+  filter(old_variable != "NA", old_variable != "exclude") # remove the instruction variables
+
+# load metadata for mentee
+meta_tee <- read_csv(here::here("00_data", "raw_data", "metadata_eoi_mentee.csv"), lazy = FALSE) %>%
+  filter(old_variable != "NA", old_variable != "exclude") # remove the instruction variables
+
+```
+
+```{r recode variables}
+
+# recode variable labels according to metadata for mentor data
+
+df_tor <- meta_rename(df = df_tor, metadata = meta_tor, old = old_variable, new = new_variable)
+
+# recode variable labels according to metadata for mentee data
+
+df_tee <- meta_rename(df = df_tee, metadata = meta_tee, old = old_variable, new = new_variable)  
+
+
+
+```
+
+
+```{r create new variables}
+
+df_tor <- df_tor %>% 
+  unite ("name", first_name:surname, sep = " ", remove = FALSE)
+
+
+df_tee <- df_tee %>% 
+  unite ("name", first_name:surname, sep = " ", remove = FALSE)
+
+
+# create a role variable for the two tibbles
+
+df_tor$role <- "mentor"
+df_tee$role <- "mentee"
+
+# identify the mentor and mentee IDs 
+df_tor$id <- paste("mentor", df_tor$id, sep = "_")
+df_tee$id <- paste("mentee", df_tee$id, sep = "_")
+
+```
+
+```{r change variable types}
+
+# change the type of variables from numbers to characters
+
+df_tee <- df_tee %>% 
+  mutate_if(is.numeric, as.character)
+
+df_tor <- df_tor %>% 
+  mutate_if(is.numeric, as.character)
+
+```
+
+
+```{r check for duplicates, include = FALSE}
+
+# [note: the reason this is here rather than preprocessing is so I can use the 
+  # data for reporting]
+
+# get our starting numbers
+
+original_n_tee <- nrow(df_tee)
+original_n_tor <- nrow(df_tor)
+
+# we then need to create values for 'dup_tee' & 'dup_tor' that we can use in the
+  # report, if there are any duplicates. Don't need if there are no duplicates.
+
+# MENTORS
+
+# check for duplicates in the data
+  # integer(0) means there are no duplicates
+  # any other number reflects a duplicate. Two or more numbers indicates two or
+  # more duplicates. 
+
+which(duplicated(df_tor$surname))
+
+# if no duplicate, add a duplicate variable so it matches the mentee data
+
+# one possible duplicate flagged; one real duplicates 
+  # delete mentor_11; mentor_32 was the complete application
+
+
+# after reviewing the raw data, indicate duplicates in the df
+# if we have more than one, add them in like this:  ((id %in% "mentee_25") | (id %in% "mentee_23")
+
+
+df_tor <- df_tor %>%
+  mutate (duplicate = ifelse ((id %in% "mentor_11"),
+                              "yes",
+                              "no"
+  )) 
+
+# create object indicating how many mentors submitted duplicate EOIs(needed for report)
+
+dup_tor <- df_tor %>% 
+  filter(duplicate == "yes") %>% 
+  nrow()
+
+# remove duplicate from working df
+
+df_tor <- df_tor %>% 
+  filter(duplicate == "no")
+
+# double check by looking at first name duplicates before moving forward
+which(duplicated(df_tor$first_name))
+
+# two people share the same first name
+
+
+# MENTEES
+
+which(duplicated(df_tee$surname))
+
+# five possible duplicates flagged; five real duplicates 
+  # delete mentee_23; mentee_24 was the complete application
+  # delete mentee_11; mentee_41 was the complete application
+  # delete mentee_19; mentee_46 was the complete application
+  # delete mentee_27; mentee_52 was the complete application
+  # delete mentee_33; mentee_53 was the complete application
+
+# after reviewing the raw data, indicate duplicates in the df
+# if we have more than one, add them in like this:  ((id %in% "mentee_25") | (id %in% "mentee_23")
+
+# one additional duplicate that was not caught in this search (due to middle name, surname confusion). 
+  # delete mentee_13; mentee_43 was the complete application
+
+# [breadcrumb: will need to work to combine mentee_27 & mentee_31 and also 
+  # mentee_42 & mentee_45 for 2024]
+
+df_tee <- df_tee %>%
+  mutate (duplicate = ifelse ((id %in% "mentee_11") | 
+                                (id %in% "mentee_19") | 
+                                (id %in% "mentee_23") |
+                                (id %in% "mentee_27") | 
+                                (id %in% "mentee_33"),
+                              "yes",
+                              "no"
+  )) 
+
+# create object indicating how many mentees submitted duplicate EOIs(needed for report)
+
+dup_tee <- df_tee %>% 
+  filter(duplicate == "yes") %>% 
+  nrow()
+
+# remove duplicate from working df
+
+df_tee <- df_tee %>% 
+  filter(duplicate == "no")
+
+# double check by looking at first name duplicates before moving forward
+which(duplicated(df_tee$first_name))
+
+
+```
+
+
+```{r create combined tibble}
+
+#combine the mentor and mentee tibbles into one
+
+df <- full_join(df_tor, df_tee)
+
+
+```
+
+
+
+```{r save simple data for colleges, include = FALSE}
+
+# I need to check with the Colleges before I go ahead with the matching process.
+# row.names gets rid of the first column from the dataframe.
+
+df_by_college <- df %>% 
+  select(c(college, role, name, email))
+
+# I am writing it as an excel doc so I can run a quick pivot table
+
+write.xlsx(
+  as.data.frame(df_by_college),
+  here::here("00_data", "processed_data", "applicants_by_college_with_email_25.xlsx"),
+  row.names = FALSE,
+  sheetName = "Sheet1",
+  col.names = TRUE,
+  append = FALSE
+)
+
+```
+

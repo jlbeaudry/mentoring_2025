@@ -50,3 +50,5 @@ internal_notes.md
 *.png
 
 
+"*.Rproj" 
+*.Rproj 
