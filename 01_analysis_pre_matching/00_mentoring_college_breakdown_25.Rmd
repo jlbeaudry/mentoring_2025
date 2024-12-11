@@ -180,12 +180,6 @@ which(duplicated(df_tee$surname))
 # after reviewing the raw data, indicate duplicates in the df
 # if we have more than one, add them in like this:  ((id %in% "mentee_25") | (id %in% "mentee_23")
 
-# one additional duplicate that was not caught in this search (due to middle name, surname confusion). 
-  # delete mentee_13; mentee_43 was the complete application
-
-# [breadcrumb: will need to work to combine mentee_27 & mentee_31 and also 
-  # mentee_42 & mentee_45 for 2024]
-
 df_tee <- df_tee %>%
   mutate (duplicate = ifelse ((id %in% "mentee_11") | 
                                 (id %in% "mentee_19") | 
