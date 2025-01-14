@@ -11,14 +11,15 @@
   # next year to run the script. Will need to play with it. 
 
 # Ideally, I want to build this in to be run in the 02 Rmd file, but I don't have
-  # time in 2025. Review this at the end of the year. My notes are that we should 
-  # be able to pull this script so the numbers are in the reports and we don't have 
-  # the same chunk in two scripts that are identical. Removes errors. 
-  # DO NOT run this along with the other scripts. This is only so I can have a 
-  # quick report of how many people applied in each College. [check if we need
-  # to use any of this in 01 Rmd too,]
+  # time in 2025. Review this at the end of the year. 
 
-# If I can't figure out how to load it, then I think I can do the analysis in '00_'
+# I think that we should be able to pull from this script so the numbers are in 
+  # the reports and we don't have the same chunk in two (or three??) scripts 
+  # that are identical. [check if we need to use any of this in 01 Rmd too]
+  # Removes errors. 
+  # one way of doing this: https://bookdown.org/yihui/rmarkdown-cookbook/read-chunk.html
+
+# If I can't figure out how to pull it, then I think I can do the analysis in '00_'
   # then run that in '01_' and then just count it in '02_' for the report. There's no 
   # point in running the same code repeatedly across the different files.
 
