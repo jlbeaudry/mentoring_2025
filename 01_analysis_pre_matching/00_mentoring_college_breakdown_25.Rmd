@@ -11,7 +11,7 @@ editor_options:
 ```{r setup, include = FALSE}
 
 # just a reminder that there is no output from this script. It just cleans the data.
-  # do NOT run this along with the other scripts. This is only so I can have a 
+  # DO NOT run this along with the other scripts. This is only so I can have a 
   # quick report of how many people applied in each College. 
 
 

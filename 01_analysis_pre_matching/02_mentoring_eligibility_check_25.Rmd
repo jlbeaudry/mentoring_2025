@@ -33,6 +33,7 @@ options(knitr.duplicate.label = "allow") # use this when you use the child files
 library(here)
 library(tidyverse)
 library(kableExtra)
+library(readxl)
 
 ```
 
@@ -109,8 +110,9 @@ which(duplicated(df_tor$surname))
 
 # if no duplicate, add a duplicate variable so it matches the mentee data
 
-# one possible duplicate flagged; one real duplicates 
+# two possible duplicate flaggeds; two real duplicates 
   # delete mentor_11; mentor_32 was the complete application
+  # delete mentor_18; mentor_49 was the complete application
 
 
 # after reviewing the raw data, indicate duplicates in the df
@@ -118,7 +120,8 @@ which(duplicated(df_tor$surname))
 
 
 df_tor <- df_tor %>%
-  mutate (duplicate = ifelse ((id %in% "mentor_11"),
+  mutate (duplicate = ifelse ((id %in% "mentor_11") |
+                               id %in% "mentor_18",
                               "yes",
                               "no"
   )) 
@@ -137,7 +140,7 @@ df_tor <- df_tor %>%
 # double check by looking at first name duplicates before moving forward
 which(duplicated(df_tor$first_name))
 
-# two people share the same first name
+# four people share the same first names (two pairs)
 
 
 # MENTEES
@@ -181,7 +184,7 @@ dup_tee <- df_tee %>%
 df_tee <- df_tee %>% 
   filter(duplicate == "no")
 
-# double check by looking at first name duplicates before moving forward
+# double check by looking at first name duplicates before moving forward. No shared names. 
 which(duplicated(df_tee$first_name))
 
 
@@ -192,6 +195,7 @@ which(duplicated(df_tee$first_name))
 
 ## MENTEES
 
+# no withdrawals this year
 
 # withdraw_n_tee <- df_tee %>% 
 #     filter(id == "mentee_32")%>% 
@@ -212,8 +216,6 @@ which(duplicated(df_tee$first_name))
 
 ```{r code eligibility criteria mentors, include = FALSE}
 
-# [breadcrumb: start from here for 2025]
-
 # Need to explain who we've lost along the way 
   # [if we end up with multiple mentors who aren't eligible and
   # overlap across criteria, then work through the steps like I do with mentees.
@@ -228,7 +230,15 @@ which(duplicated(df_tee$first_name))
 other_level <- df_tor %>%
   filter(level %in% "Other (please specify)") 
 
-# none in this dataset
+df_tor$level <- as.factor(df_tor$level)
+
+df_tor <- df_tor %>%
+  mutate(level_eligibility = case_when(id %in% "mentor_9" ~ "Not eligible", # level B
+                                       id %in% "mentor_41" ~ "Not eligible", # level B
+                                 TRUE ~ as.character("Eligible"))) %>% 
+  mutate(level_eligibility = as.factor(level_eligibility))
+
+# not needed in 2025
 
 # after looking thru the data, three cases need to be recoded because two were 
   # promoted as of Jan 2023 and one is a level B [removed from data earlier]. 
@@ -242,17 +252,6 @@ other_level <- df_tor %>%
 #                                  TRUE ~ as.character(level))) %>% 
 #   relocate(level_recode, .after = level_other)
 
-# add an eligibility criteria for academic level
-
-df_tor$level <- as.factor(df_tor$level)
-
-# see if any ineligible levels exist. none in this dataset.
-df_tor %>% 
-  filter(!level %in% c("Level C", "Level D", "Level E"))
-
-df_tor <- df_tor %>%
-  mutate(level_eligibility = as.character("Eligible")) %>%
-  mutate(level_eligibility = as.factor(level_eligibility))
 
 
 # create object for report of how many are not eligible due to academic level. none.
@@ -318,15 +317,14 @@ df_tor_end <- df_tor %>%
    filter(str_detect(employment_length, "Fixed-term"))
 
 # I did this manually after screening by contract end date & level
-# then I reviewed their EOIs and contacted those who did not provide contract end date details
-# [breadcrumb: I need to come back to this for 2024]
+# if necessary, contact those who did not provide contract end date details [not necessary in 2025]
+
 
 # add a contract eligibility variable to df
-# we had a question re: the mentor's contract length, but it was resolved via email
+
 
 df_tor <- df_tor %>%
-  mutate(contract_eligibility = case_when(id %in% "mentor_32" ~ "Eligible", # extension confirmed via email w supervisor 
-                                 TRUE ~ as.character("Eligible"))) %>%
+  mutate(contract_eligibility = as.character("Eligible")) %>%
   mutate(contract_eligibility = as.factor(contract_eligibility))
 
 # create object for report of how many are not eligible due to contract
@@ -342,10 +340,12 @@ df_tor <- df_tor %>%
   mutate(eligibility = case_when(employment_eligibility == "Not eligible" ~ "Not eligible", 
                                 level_eligibility == "Not eligible" ~ "Not eligible", 
                                 contract_eligibility == "Not eligible" ~ "Not eligible", 
-                                grepl("Question", contract_eligibility) ~ "Information needed", 
+                                #grepl("Question", contract_eligibility) ~ "Information needed", {not needed}
                                   TRUE ~ as.character("Eligible"))) %>% 
   mutate(eligibility = as.factor(eligibility))
 
+# keep everyone in the dataframe for now so we have the full dataset. Will remove
+# ineligible folks later
 
 rm(other_level, df_tor_end)
 
@@ -358,16 +358,34 @@ rm(other_level, df_tor_end)
 ## PREVIOUS PARTICIPATION IN PROGRAM ##
 
 # check to see if this year's applicants previously participated in the program. 
-  # check this outside of the code by checking the data with all mentees against
-  # this year's participants. We could code this in the future, when I have time. 
+  # use code below to check the data with all prior mentees against
+  # this year's applicants. Find the updated spreadsheet in our general T&D files.
 
-# two mentees were previously selected for the program so are ineligible to 
+# load the excel sheet with all prior participants and select only the mentee column
+df_prior <- read_xlsx(
+  here::here("00_data",
+             "raw_data",
+             "all_participants_since_2012.xlsx"),
+  sheet = 'Names',
+#  n_max = 129,  #
+#  .name_repair = "unique",
+  trim_ws = TRUE) %>% 
+  select (Mentee) 
+
+# select only the mentee's names for this year's applicants
+df_tee_name <- df_tee %>% 
+  select (c(id, name, college)) %>% 
+  rename ("Mentee"= "name")
+
+df_compare <- inner_join(df_prior, df_tee_name, by = "Mentee")
+
+
+# one mentee was previously selected for the program so is ineligible to 
   # participate this year
 
 df_tee <- df_tee %>%
-  mutate(previous_mentee_eligibility = case_when(id %in% "mentee_7" ~ "Not eligible", # participated in 2022
-                                            id %in% "mentee_26" ~ "Not eligible", #  # participated in 2022
-                                 TRUE ~ as.character("Eligible"))) %>% 
+  mutate(previous_mentee_eligibility = case_when(id %in% "mentee_42" ~ "Not eligible", # participated in 2022
+                                           TRUE ~ as.character("Eligible"))) %>% 
   mutate(previous_mentee_eligibility = as.factor(previous_mentee_eligibility))
 
 previous_no_n_tee <- df_tee %>% 
@@ -560,6 +578,8 @@ df_tee <- df_tee %>%
                                   TRUE ~ as.character("Eligible"))) %>% 
   mutate(eligibility = as.factor(eligibility))
 
+# keep everyone in the dataframe for now so we have the full dataset. Will remove
+# ineligible folks later
 
 rm (employ_a, employ_b, level, df_phd, df_tee_end)
 
