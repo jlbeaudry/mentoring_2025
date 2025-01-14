@@ -1,29 +1,28 @@
----
-title: "Researcher Mentoring Program for Early-Career Researchers (2025)"
+#title: "Researcher Mentoring Program for Early-Career Researchers (2025)"
 # subtitle: "Data Script for Preprocessing the EOIs"
-author: "Jen Beaudry"
-date: "November 2024"
-output: pdf_document
-editor_options: 
-  chunk_output_type: console
----
+#author: "Jen Beaudry"
+#date: "November 2024"
 
-```{r setup, include = FALSE}
 
-# just a reminder that there is no output from this script. It just cleans the data.
+# This script cleans the data and gives us a quick report of how many people
+  # applied from each College. 
+
+# This info is the same as the 00_.Rmd file, but I don't know which will be needed
+  # next year to run the script. Will need to play with it. 
+
+# Ideally, I want to build this in to be run in the 02 Rmd file, but I don't have
+  # time in 2025. Review this at the end of the year. My notes are that we should 
+  # be able to pull this script so the numbers are in the reports and we don't have 
+  # the same chunk in two scripts that are identical. Removes errors. 
   # DO NOT run this along with the other scripts. This is only so I can have a 
-  # quick report of how many people applied in each College. 
+  # quick report of how many people applied in each College. [check if we need
+  # to use any of this in 01 Rmd too,]
 
-# SEE NOTES IN THE '00_.r' FILE BEFORE RUNNINGN THIS SCRIPT
+# If I can't figure out how to load it, then I think I can do the analysis in '00_'
+  # then run that in '01_' and then just count it in '02_' for the report. There's no 
+  # point in running the same code repeatedly across the different files.
 
 
-knitr::opts_chunk$set(echo = FALSE, include = FALSE)
-
-options(knitr.duplicate.label = "allow") # use this when you use the child files
-
-```
-
-```{r library}
 
 library(here)
 library(tidyverse)
@@ -32,9 +31,7 @@ library(xlsx)
 source(here("..", "functions", "read_qualtrics.R"))
 source(here("..", "functions", "meta_rename.R"))
 
-```
-
-```{r load data}
+#### LOAD DATA ####
 
 # mentor data
 
@@ -62,9 +59,7 @@ meta_tor <- read_csv(here::here("00_data", "raw_data", "metadata_eoi_mentor.csv"
 meta_tee <- read_csv(here::here("00_data", "raw_data", "metadata_eoi_mentee.csv"), lazy = FALSE) %>%
   filter(old_variable != "NA", old_variable != "exclude") # remove the instruction variables
 
-```
-
-```{r recode variables}
+#### RECODE VARIABLES ####    
 
 # recode variable labels according to metadata for mentor data
 
@@ -75,15 +70,10 @@ df_tor <- meta_rename(df = df_tor, metadata = meta_tor, old = old_variable, new 
 df_tee <- meta_rename(df = df_tee, metadata = meta_tee, old = old_variable, new = new_variable)  
 
 
-
-```
-
-
-```{r create new variables}
+#### CREATE NEW VARIABLES ####
 
 df_tor <- df_tor %>% 
   unite ("name", first_name:surname, sep = " ", remove = FALSE)
-
 
 df_tee <- df_tee %>% 
   unite ("name", first_name:surname, sep = " ", remove = FALSE)
@@ -98,9 +88,8 @@ df_tee$role <- "mentee"
 df_tor$id <- paste("mentor", df_tor$id, sep = "_")
 df_tee$id <- paste("mentee", df_tee$id, sep = "_")
 
-```
 
-```{r change variable types}
+### CHANGE VARIABLE TYPES ####
 
 # change the type of variables from numbers to characters
 
@@ -110,13 +99,10 @@ df_tee <- df_tee %>%
 df_tor <- df_tor %>% 
   mutate_if(is.numeric, as.character)
 
-```
-
-
-```{r check for duplicates, include = FALSE}
+#### CHECK FOR DUPLICATES ####
 
 # [note: the reason this is here rather than preprocessing is so I can use the 
-  # data for reporting; if this chunk is updated, also update it in 00_ file]
+# data for reporting; if this chunk is updated, also update it in 00_ file]
 
 # get our starting numbers
 
@@ -124,22 +110,22 @@ original_n_tee <- nrow(df_tee)
 original_n_tor <- nrow(df_tor)
 
 # we then need to create values for 'dup_tee' & 'dup_tor' that we can use in the
-  # report, if there are any duplicates. Don't need if there are no duplicates.
+# report, if there are any duplicates. Don't need if there are no duplicates.
 
 # MENTORS
 
 # check for duplicates in the data
-  # integer(0) means there are no duplicates
-  # any other number reflects a duplicate. Two or more numbers indicates two or
-  # more duplicates. 
+# integer(0) means there are no duplicates
+# any other number reflects a duplicate. Two or more numbers indicates two or
+# more duplicates. 
 
 which(duplicated(df_tor$surname))
 
 # if no duplicate, add a duplicate variable so it matches the mentee data
 
 # two possible duplicate flaggeds; two real duplicates 
-  # delete mentor_11; mentor_32 was the complete application
-  # delete mentor_18; mentor_49 was the complete application
+# delete mentor_11; mentor_32 was the complete application
+# delete mentor_18; mentor_49 was the complete application
 
 
 # after reviewing the raw data, indicate duplicates in the df
@@ -148,7 +134,7 @@ which(duplicated(df_tor$surname))
 
 df_tor <- df_tor %>%
   mutate (duplicate = ifelse ((id %in% "mentor_11") |
-                               id %in% "mentor_18",
+                                id %in% "mentor_18",
                               "yes",
                               "no"
   )) 
@@ -175,14 +161,13 @@ which(duplicated(df_tor$first_name))
 which(duplicated(df_tee$surname))
 
 # five possible duplicates flagged; five real duplicates 
-  # delete mentee_23; mentee_24 was the complete application
-  # delete mentee_11; mentee_41 was the complete application
-  # delete mentee_19; mentee_46 was the complete application
-  # delete mentee_27; mentee_52 was the complete application
-  # delete mentee_33; mentee_53 was the complete application
+# delete mentee_23; mentee_24 was the complete application
+# delete mentee_11; mentee_41 was the complete application
+# delete mentee_19; mentee_46 was the complete application
+# delete mentee_27; mentee_52 was the complete application
+# delete mentee_33; mentee_53 was the complete application
 
 # after reviewing the raw data, indicate duplicates in the df
-
 
 df_tee <- df_tee %>%
   mutate (duplicate = ifelse ((id %in% "mentee_11") | 
@@ -209,22 +194,16 @@ df_tee <- df_tee %>%
 which(duplicated(df_tee$first_name))
 
 
-```
+#### CREATE COMBINED TIBBLE ####
 
-
-
-```{r create combined tibble}
 
 #combine the mentor and mentee tibbles into one
 
 df <- full_join(df_tor, df_tee)
 
 
-```
+#### SAVE SIMPLE DATA FOR COLLEGES ####
 
-
-
-```{r save simple data for colleges, include = FALSE}
 
 # I need to check with the Colleges before I go ahead with the matching process.
 # row.names gets rid of the first column from the dataframe.
@@ -243,5 +222,5 @@ write.xlsx(
   append = FALSE
 )
 
-```
+
 

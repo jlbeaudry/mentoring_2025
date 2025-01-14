@@ -2,7 +2,7 @@
 
 # Researcher Mentoring Program for Early Career Researchers (2025)
 
-This file was started in 2023 when the EOIs were completed for the 2025 
+This file was started in 2024 when the EOIs were completed for the 2025 
 program.
 
 It contains all files necessary to clean the data from Qualtrics,
