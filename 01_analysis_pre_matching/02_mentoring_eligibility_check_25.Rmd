@@ -386,20 +386,28 @@ previous_no_n_tee <- df_tee %>%
     filter(previous_mentee_eligibility == "Not eligible") %>%
     nrow()
 
+rm(df_compare, df_tee_name, df_prior)
+
 ## EMPLOYMENT TYPE ##
 
-# look at their responses to other employment types AND for those in other academic roles
+# look at their responses to other employment types AND for those in other academic roles AND
+  # for those who said that their position was a PhD student
+
 employ_a <- df_tee %>%
   filter(employment_type %in% "Other (please specify)") 
 
 employ_b <- df_tee %>%
   filter(academic_role %in% "Other (please specify)") 
 
+employ_c <- df_tee %>% 
+  filter(str_detect(position, "student"))
+
 # mark them as ineligible as required 
 df_tee <- df_tee %>%
-  mutate(employment_eligibility = case_when(id %in% "mentee_34" ~ "Not eligible", # casual
-                                            id %in% "mentee_30" ~ "Not eligible", # teaching specialist
-                                 TRUE ~ as.character("Eligible"))) %>% 
+  mutate(employment_eligibility = case_when(id %in% "mentee_44" ~ "Not eligible", # PhD student
+                                            id %in% "mentee_18" ~ "Not eligible", # PhD student
+                                            id %in% "mentee_55" ~ "Not eligible", # PhD student
+                                            TRUE ~ as.character("Eligible"))) %>% 
   mutate(employment_eligibility = as.factor(employment_eligibility))
 
 # create object for report of how many are not eligible due to employment type
@@ -422,7 +430,8 @@ df_tee <- df_tee %>%
     )
   ) 
 
-# confirm that no one has less than 0.4
+# confirm that no one has less than 0.4 [check the values to see if anything needs 
+  # to be recoded first]
 
 df_tee %>% 
   mutate(as.numeric(parttime_FTE)) %>% 
@@ -443,24 +452,27 @@ level <- df_tee %>%
 df_tee$level <- as.factor(df_tee$level)
 df_tee %>% 
   filter(!level %in% c("Level A", "Level B", "Level C"))
-# no one other than those with other levels
+# no one other than those with other levels because 
+  # technically Level Ds can participate according to the guidelines!
 
 # this list also includes others who were revealed to have casual appts based 
   # on other info in their EOI (e.g., mentee_43)
 
 df_tee <- df_tee %>%
-  mutate(level_recode = case_when(id %in% "mentee_12" ~ "Level B", # email from supervisor & EOI info 
-                                  id %in% "mentee_48" ~ "Level B", 
-                                  id %in% "mentee_34" ~ "Casual",
+  mutate(level_recode = case_when(id %in% "mentee_5" ~ "Research Assistant",
+                                  id %in% "mentee_18" ~ "PhD student", 
+                                  id %in% "mentee_44" ~ "PhD student",
+                                  id %in% "mentee_55" ~ "PhD student",
                                  TRUE ~ as.character((level)))) %>% 
   relocate(level_recode, .after = level_other)
 
 # now mark eligibility according to level
 
 df_tee <- df_tee %>%
-  mutate(level_eligibility = case_when(id %in% "mentee_12" ~ "Eligible", # email from supervisor & EOI info 
-                                  id %in% "mentee_22" ~ "Not eligible",
-                                  id %in% "mentee_34" ~ "Not eligible",
+  mutate(level_eligibility = case_when(id %in% "mentee_5" ~ "Not eligible", # email from supervisor & EOI info 
+                                  id %in% "mentee_18" ~ "Not eligible",
+                                  id %in% "mentee_44" ~ "Not eligible",
+                                  id %in% "mentee_55" ~ "Not eligible",
                                  TRUE ~ as.character("Eligible"))) %>% 
   mutate(level_eligibility = as.factor(level_eligibility))
 
@@ -475,21 +487,20 @@ level_no_n_tee <- df_tee %>%
     filter(!level_eligibility %in% "Eligible") %>% 
     nrow()
 
+rm (employ_a, employ_b, employ_c, level)
 
 ### PhD CONFERRAL DATE ###
 
-# manually review their conferral date
+# manually review their conferral date [can sort by year]
 df_phd <- df_tee %>% 
   select(c(id, name, college, conferral_month, conferral_year, interruptions, employment_eligibility, level_eligibility))
 
 # now mark eligibility according to conferral date
-  # [breadcrumb: decisions need to be made for outstanding cases]
-
+  # [breadcrumb: resolve awaiting information eligibility issues]
+  
 df_tee <- df_tee %>%
-  mutate(conferral_eligibility = case_when(id %in% "mentee_46" ~ "Eligible", # eligible as per interruption calculator
-                                  id %in% "mentee_30" ~ "Eligible", # interruption fine, not eligible due to role
-                                  id %in% "mentee_49" ~ "Eligible", # borderline; include based on DOR email
-                                  id %in% "mentee_57" ~ "Eligible", # Jan 2024 conferral confirmed via email
+  mutate(conferral_eligibility = case_when(id %in% "mentee_9" ~ "Information needed", # outcome of PhD submission?
+                                  id %in% "mentee_20" ~ "Information needed", # need info re: career interruptions
                                  TRUE ~ as.character("Eligible"))) %>% 
   mutate(conferral_eligibility = as.factor(conferral_eligibility))
 
@@ -502,9 +513,10 @@ phd_no_n_tee <- df_tee %>%
     filter(previous_mentee_eligibility == "Eligible") %>% 
     filter(employment_eligibility == "Eligible") %>% 
     filter(level_eligibility == "Eligible") %>% 
-    filter(conferral_eligibility == "Not eligible") %>% 
+    filter(conferral_eligibility == "Not eligible" | conferral_eligibility == "Information needed") %>% 
     nrow()
 
+remove(df_phd)
 
 ### CONTRACT END DATE ###
 
@@ -530,18 +542,17 @@ df_tee_end <- df_tee %>%
 
 # I did this manually after screening by contract end date & level
 # then I reviewed their EOIs and contacted those who did not provide contract end date details
-# this also captures those above who were students or casuals
+# this also captures those above who were students or casuals, but I'm not including those here
 
 df_tee <- df_tee %>%
-  mutate(contract_eligibility = case_when(id %in% "mentee_5" ~ "Eligible", # end date confirmed via email
-                                 id %in% "mentee_11" ~ "Eligible", # extension confirmed via email
-                                 id %in% "mentee_15" ~ "Eligible", # extension confirmed via email
-                                 id %in% "mentee_16" ~ "Not eligible", # no extension; confirmed via email
-                                 id %in% "mentee_24" ~ "Eligible", # end date confirmed via email
-                                 id %in% "mentee_27" ~ "Eligible", # supervisor confirmed via email
-                                 id %in% "mentee_38" ~ "Eligible", # end date confirmed via email
-                                 id %in% "mentee_48" ~ "Eligible", # extension confirmed via email
-                                 TRUE ~ as.character("Eligible"))) %>% 
+  mutate(contract_eligibility = case_when(id %in% "mentee_5" ~ "Information needed", # email
+                                 id %in% "mentee_9" ~ "Information needed", # email
+                                 id %in% "mentee_15" ~ "Information needed", # email
+                                 id %in% "mentee_31" ~ "Information needed", # email
+                                 id %in% "mentee_49" ~ "Information needed", # email
+                                 id %in% "mentee_52" ~ "Information needed", # email
+                                 id %in% "mentee_54" ~ "Not eligible", # incomplete application too
+                                  TRUE ~ as.character("Eligible"))) %>% 
   mutate(contract_eligibility = as.factor(contract_eligibility))
 
 # create object for report of how many are not eligible due to contract end date 
@@ -553,7 +564,7 @@ contract_no_n_tee <- df_tee %>%
     filter(employment_eligibility == "Eligible") %>% 
     filter(level_eligibility == "Eligible") %>% 
     filter(conferral_eligibility == "Eligible") %>% 
-    filter(contract_eligibility  == "Not eligible") %>% 
+    filter(contract_eligibility  == "Not eligible" | contract_eligibility == "Information needed") %>% 
     nrow()
 
 
@@ -565,17 +576,19 @@ df_tee <- df_tee %>%
                                 level_eligibility == "Not eligible" ~ "Not eligible", 
                                 conferral_eligibility == "Not eligible" ~ "Not eligible", 
                                contract_eligibility == "Not eligible" ~ "Not eligible", 
-                                grepl("Question", employment_eligibility) ~ "Information needed", 
-                                grepl("Question", level_eligibility) ~ "Information needed", 
-                                grepl("Question", conferral_eligibility) ~ "Information needed", 
-                               grepl("Question", contract_eligibility) ~ "Information needed", 
+                                grepl("Information needed", employment_eligibility) ~ "Information needed", 
+                                grepl("Information needed", level_eligibility) ~ "Information needed", 
+                                grepl("Information needed", conferral_eligibility) ~ "Information needed", 
+                               grepl("Information needed", contract_eligibility) ~ "Information needed", 
                                   TRUE ~ as.character("Eligible"))) %>% 
   mutate(eligibility = as.factor(eligibility))
+
+# I don't know why I used GREPL??
 
 # keep everyone in the dataframe for now so we have the full dataset. Will remove
 # ineligible folks later
 
-rm (employ_a, employ_b, level, df_phd, df_tee_end)
+rm (df_tee_end)
 
 ```
 
@@ -585,23 +598,23 @@ rm (employ_a, employ_b, level, df_phd, df_tee_end)
 # these files include eligible and ineligible folks, with eligibility status indicated in the file
 # row.names gets rid of the first column from the dataframe.
 
-write.csv(df_tor, here::here("processed_data", "eoi_mentor_processed.csv"), row.names = FALSE)
+write.csv(df_tor, here::here("00_data", "processed_data", "eoi_mentor_processed.csv"), row.names = FALSE)
 
-write.csv(df_tee, here::here("processed_data", "eoi_mentee_processed.csv"), row.names = FALSE)
+write.csv(df_tee, here::here("00_data", "processed_data", "eoi_mentee_processed.csv"), row.names = FALSE)
 
 # save a subset with details about ineligible folks and those with outstanding questions
 df_tee_inel <- df_tee %>% 
   filter(!eligibility %in% "Eligible") %>% 
   select (c(id, name, first_name, college | contains("eligibility")))
 
-write.csv(df_tee_inel, here::here("processed_data", "eoi_mentee_ineligible.csv"), row.names = FALSE)
+write.csv(df_tee_inel, here::here("00_data", "processed_data", "eoi_mentee_ineligible.csv"), row.names = FALSE)
 
 # save a subset with details about ineligible folks and those with outstanding questions
 df_tor_inel <- df_tor %>% 
   filter(!eligibility %in% "Eligible") %>% 
   select (c(id, name, first_name, college | contains("eligibility")))
 
-write.csv(df_tor_inel, here::here("processed_data", "eoi_mentor_ineligible.csv"), row.names = FALSE)
+write.csv(df_tor_inel, here::here("00_data", "processed_data", "eoi_mentor_ineligible.csv"), row.names = FALSE)
 
 
 ```

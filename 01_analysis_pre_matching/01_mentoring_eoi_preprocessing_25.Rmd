@@ -121,9 +121,8 @@ rm(df_tee1a, df_tee1b)
 
 # non-numeric responses re: FTE
 
-# df_tee [df_tee == "0,6"] <- "0.6"
-# df_tee [df_tee == "0.6-0.8"] <- "0.7"
-# df_tee [df_tee == "0.8FTE"] <- "0.8"
+df_tee [df_tee == "60%"] <- "0.6"
+df_tee [df_tee == "0.8FTE"] <- "0.8"
 
 ```
 
