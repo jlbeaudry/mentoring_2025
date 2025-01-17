@@ -2,7 +2,7 @@
 title: "Researcher Mentoring Program for Early Career Researchers (2025)"
 # subtitle: "Eligibility Check"
 # author: "Jen Beaudry"
-date: "December 2024"
+date: "January 2025"
 output: pdf_document
 editor_options: 
   chunk_output_type: console
@@ -38,6 +38,8 @@ library(readxl)
 ```
 
 ```{r run preprocessing, child=(here::here("01_analysis_pre_matching", "01_mentoring_eoi_preprocessing_25.Rmd")), include=FALSE}
+
+# note this only runs when knitting. you can't 'run' this chunk.
 
 ```
 
@@ -416,6 +418,7 @@ employ_no_n_tee <- df_tee %>%
     filter(employment_eligibility == "Not eligible") %>%
     nrow()
 
+rm (employ_a, employ_b, employ_c)
 
 # PART-TIME EMPLOYMENT
 
@@ -469,7 +472,7 @@ df_tee <- df_tee %>%
 # now mark eligibility according to level
 
 df_tee <- df_tee %>%
-  mutate(level_eligibility = case_when(id %in% "mentee_5" ~ "Not eligible", # email from supervisor & EOI info 
+  mutate(level_eligibility = case_when(id %in% "mentee_5" ~ "Not eligible", 
                                   id %in% "mentee_18" ~ "Not eligible",
                                   id %in% "mentee_44" ~ "Not eligible",
                                   id %in% "mentee_55" ~ "Not eligible",
@@ -487,7 +490,7 @@ level_no_n_tee <- df_tee %>%
     filter(!level_eligibility %in% "Eligible") %>% 
     nrow()
 
-rm (employ_a, employ_b, employ_c, level)
+rm (level)
 
 ### PhD CONFERRAL DATE ###
 
@@ -499,7 +502,7 @@ df_phd <- df_tee %>%
   # [breadcrumb: resolve awaiting information eligibility issues]
   
 df_tee <- df_tee %>%
-  mutate(conferral_eligibility = case_when(id %in% "mentee_9" ~ "Information needed", # outcome of PhD submission?
+  mutate(conferral_eligibility = case_when(id %in% "mentee_9" ~ "Not eligible", # outcome of PhD submission?
                                   id %in% "mentee_20" ~ "Information needed", # need info re: career interruptions
                                  TRUE ~ as.character("Eligible"))) %>% 
   mutate(conferral_eligibility = as.factor(conferral_eligibility))
@@ -545,12 +548,12 @@ df_tee_end <- df_tee %>%
 # this also captures those above who were students or casuals, but I'm not including those here
 
 df_tee <- df_tee %>%
-  mutate(contract_eligibility = case_when(id %in% "mentee_5" ~ "Information needed", # email
-                                 id %in% "mentee_9" ~ "Information needed", # email
-                                 id %in% "mentee_15" ~ "Information needed", # email
+  mutate(contract_eligibility = case_when(id %in% "mentee_5" ~ "Not eligible", # email
+                                 id %in% "mentee_9" ~ "Not eligible", # email
+                                 id %in% "mentee_15" ~ "Eligible", # contract extended [via email]
                                  id %in% "mentee_31" ~ "Information needed", # email
-                                 id %in% "mentee_49" ~ "Information needed", # email
-                                 id %in% "mentee_52" ~ "Information needed", # email
+                                 id %in% "mentee_49" ~ "Eligible", # contract extended [via email]
+                                 id %in% "mentee_52" ~ "Eligible", # contract extended [via email]
                                  id %in% "mentee_54" ~ "Not eligible", # incomplete application too
                                   TRUE ~ as.character("Eligible"))) %>% 
   mutate(contract_eligibility = as.factor(contract_eligibility))
@@ -571,19 +574,20 @@ contract_no_n_tee <- df_tee %>%
 ## CREATE OVERALL ELIGIBILITY VARIABLE ## 
 
 df_tee <- df_tee %>%
-  mutate(eligibility = case_when(previous_mentee_eligibility == "Not eligible" ~ "Not eligible",
+  mutate(
+    eligibility = case_when(
+      previous_mentee_eligibility == "Not eligible" ~ "Not eligible", 
                                 employment_eligibility == "Not eligible" ~ "Not eligible", 
                                 level_eligibility == "Not eligible" ~ "Not eligible", 
                                 conferral_eligibility == "Not eligible" ~ "Not eligible", 
                                contract_eligibility == "Not eligible" ~ "Not eligible", 
-                                grepl("Information needed", employment_eligibility) ~ "Information needed", 
-                                grepl("Information needed", level_eligibility) ~ "Information needed", 
-                                grepl("Information needed", conferral_eligibility) ~ "Information needed", 
-                               grepl("Information needed", contract_eligibility) ~ "Information needed", 
+                                employment_eligibility  == "Information needed" ~ "Information needed", 
+                               level_eligibility  == "Information needed" ~ "Information needed", 
+                               conferral_eligibility  == "Information needed" ~ "Information needed", 
+                             contract_eligibility == "Information needed" ~ "Information needed", 
                                   TRUE ~ as.character("Eligible"))) %>% 
   mutate(eligibility = as.factor(eligibility))
 
-# I don't know why I used GREPL??
 
 # keep everyone in the dataframe for now so we have the full dataset. Will remove
 # ineligible folks later
@@ -691,7 +695,7 @@ areas_wide <- areas %>%
 
 # combine the areas into one column [if no one entered data for the 
   # `other_1` & `other_2` variables, then they need to be removed from from this 
-  # process; replace `other_2` with 'other_1` because some folks did use that]
+  # process]
 
 areas_wide <- areas_wide %>% 
   unite ("areas", planning:other_1, sep = ", ", remove = FALSE, na.rm = TRUE)
@@ -709,8 +713,8 @@ mentees_areas_wide <- areas_wide %>%
 no_areas_tor <- anti_join(df_tor, mentors_areas_wide, by = "id")
 no_areas_tee <- anti_join(df_tee, mentees_areas_wide, by = "id")
 
-# we do not lose any mentors for this reason 
-# we lose one mentee because they did not provide any areas of interest
+# we lose one mentor because they did not provide any areas of interest
+# we lose two mentees because they did not provide any areas of interest
 # [see internal_notes for details]
 # we then use these objects in the report to explain the total number of applications considered
 
@@ -746,17 +750,17 @@ df <- full_join(df_tor, df_tee)
 # when done assessing for eligibility and interests, write the data to new files
 # row.names gets rid of the first column from the dataframe.
 
-write.csv(df_tor, here::here("processed_data", "eoi_mentor_eligible.csv"), row.names = FALSE)
+write.csv(df_tor, here::here("00_data", "processed_data", "eoi_mentor_eligible.csv"), row.names = FALSE)
 
-write.csv(df_tee, here::here("processed_data", "eoi_mentee_eligible.csv"), row.names = FALSE)
+write.csv(df_tee, here::here("00_data", "processed_data", "eoi_mentee_eligible.csv"), row.names = FALSE)
 
-write.csv(df, here::here("processed_data", "eoi_combined_eligible.csv"), row.names = FALSE)
+write.csv(df, here::here("00_data", "processed_data", "eoi_combined_eligible.csv"), row.names = FALSE)
 
 # also write the areas wide data so we can load them in step 3
 
-write.csv(mentors_areas_wide, here::here("processed_data", "eoi_mentor_areas_wide.csv"), row.names = FALSE)
+write.csv(mentors_areas_wide, here::here("00_data", "processed_data", "eoi_mentor_areas_wide.csv"), row.names = FALSE)
 
-write.csv(mentees_areas_wide, here::here("processed_data", "eoi_mentee_areas_wide.csv"), row.names = FALSE)
+write.csv(mentees_areas_wide, here::here("00_data", "processed_data", "eoi_mentee_areas_wide.csv"), row.names = FALSE)
 
 
 # these files will contain ONLY the eligible folks who provided info about their interests
@@ -766,51 +770,63 @@ write.csv(mentees_areas_wide, here::here("processed_data", "eoi_mentee_areas_wid
 
 ```{r look at this info to find eligible folks to prioritise, include = FALSE, eval = FALSE}
 
-# look at notes from last year re: eligible but not selected folks who applied again this year
+# look at notes from the three previous years re: eligible but not selected folks who applied again this year
 
-# look at eligible folks with contracts that end before Dec 2025 (and thus can't participate next year)
+# look at eligible folks with contracts that end before 2025 (and thus can't participate next year).
 
-df_tee_end <- df_tee %>% 
+
+df_tee_end_25 <- df_tee %>% 
   filter(str_detect(employment_length, "Fixed-term")) %>% 
-  select(c(id, name, college, employment_length, contract_end_date, level_recode, employment_eligibility, level_eligibility, conferral_eligibility))
+  select(c(id, name, college, employment_length, contract_end_date, level_recode, employment_eligibility, level_eligibility, conferral_eligibility)) %>% 
+  filter(grepl("25", contract_end_date))
 
-# look at eligible folks with conferral dates between Feb 2016 and Feb 2017 (and thus can't participate next year)
+# check anyone with contract end dates of 2026 too in case contracts end mid-year
+df_tee_end_26 <- df_tee %>% 
+  filter(str_detect(employment_length, "Fixed-term")) %>% 
+  select(c(id, name, college, employment_length, contract_end_date, level_recode, employment_eligibility, level_eligibility, conferral_eligibility)) %>% 
+  filter(grepl("26", contract_end_date))
+
+rm(df_tee_end_25, df_tee_end_26)
+
+# look at eligible folks with conferral dates between Feb 2017 and Feb 2018  (and thus can't participate next year)
+  # double check the folks that had career interruptions.
 
 df_phd <- df_tee %>% 
-  select(c(id, name, college, conferral_month, conferral_year, interruptions, employment_eligibility, level_eligibility))
+  select(c(id, name, college, conferral_month, conferral_year, interruptions, employment_eligibility, level_eligibility)) %>% 
+  filter(as.numeric(conferral_year) <= 2018)
 
-
-
+rm(df_phd)
 
 ```
 
 
 We received `r original_n_tor` mentor applications and `r original_n_tee` mentee
 applications. We screened this data for quality and then removed people who did not meet the
-eligibility criteria for the program: 
+eligibility criteria for the program. Below are the screening steps:
 
   *  Duplicates: We had `r dup_tee` mentee applications with 
-  multiple entries. We removed incomplete copies of these duplicated applications.
+  multiple entries and `r dup_tor` mentor applications with multiple entries. 
+  We removed incomplete copies of these duplicated applications.
   
-  *  Withdrawals: We had `r withdraw_n_tee` 
-  mentee withdraw from the program because they left the university. They withdrew 
-  before matching took place. 
+  *  Withdrawals: No one withdrew from the program before matching took place. 
   
-  *  Errors: We had no mentees or mentors who submitted an accidental application. 
-  
-  *  Mentor eligibility: All mentors who applied met the eligibility criteria. 
+  *  Mentor eligibility:  We had `r level_no_n_tor` mentors who did not meet the 
+  eligibility criteria for the program. These were likely mentees who accidentally 
+  completed the incorrect form. 
   
   *  Mentee eligibility: We had
   `r sum(previous_no_n_tee, employ_no_n_tee, level_no_n_tee, contract_no_n_tee, phd_no_n_tee)` mentees 
   who did not meet the eligibility criteria for the program. Specifically, we 
-  had `r previous_no_n_tee` applications from mentees who previously participated in the program,
+  had `r previous_no_n_tee` application from a mentee who previously participated in the program,
   `r employ_no_n_tee` applications from people who did not hold academic positions, 
-  `r level_no_n_tee` application from someone who holds a position above Level C, and
-  `r contract_no_n_tee` application from someone whose contract will end 
-  before November 2024. 
+  `r level_no_n_tee` application from someone who holds a position above Level C, 
+  `r phd_no_n_tee` application from people who have not yet completed their PhD, and
+  `r contract_no_n_tee` application from people whose contracts will end before November 2025. 
 
   *  Missing information: We removed `r nrow(no_areas_tee)`
-  mentee from the data because they did not specify the areas for growth.   
+  mentees from the data because they did not specify the areas for growth and
+  `r nrow(no_areas_tor)` mentor because they did not identify the areas in which
+  they could provide mentoring. 
 
 As such, we completed the matching process on the remaining complete and eligible
 applications from `r total_tor` mentors and `r total_tee` mentees. 
@@ -846,7 +862,7 @@ knitr::kable (booktabs = T, linesep = "",
               col.names = c("College", "Number", "Percentage", "Number", "Percentage"), 
               caption = "Breakdown of Eligible Mentors and Mentees by College",
               align = 'lcc') %>% 
-    add_header_above(c(" " = 1, "Mentors (n = 39)" = 2, "Mentees (n = 43)" = 2)) %>% 
+    add_header_above(c(" " = 1, "Mentors (n = 44)" = 2, "Mentees (n = 41)" = 2)) %>% 
   styler_pdf() 
 
 
