@@ -39,7 +39,6 @@ library(readxl)
 
 ```{r run preprocessing, child=(here::here("01_analysis_pre_matching", "01_mentoring_eoi_preprocessing_25.Rmd")), include=FALSE}
 
-# note this only runs when knitting. you can't 'run' this chunk.
 
 ```
 
