@@ -190,21 +190,30 @@ which(duplicated(df_tee$first_name))
 
 ## MENTEES
 
-# no withdrawals this year
+# 1 withdrawal this year
 
-# withdraw_n_tee <- df_tee %>% 
-#     filter(id == "mentee_32")%>% 
-#     nrow()
+withdraw_n_tee <- df_tee %>%
+    filter(id == "mentee_38")%>%
+    nrow()
   
 # remove the mentee from the df
 
-# df_tee <- df_tee %>% 
-#   filter(!id %in% c("mentee_32"))
+df_tee <- df_tee %>%
+  filter(!id %in% c("mentee_38"))
 
 
 ## MENTORS
 
-# no withdrawals
+# 1 withdrawal this year
+
+withdraw_n_tor <- df_tor %>%
+    filter(id == "mentor_16")%>%
+    nrow()
+  
+# remove the mentee from the df
+
+df_tor <- df_tor %>%
+  filter(!id %in% c("mentor_16"))
 
 ```
 
@@ -405,7 +414,8 @@ employ_c <- df_tee %>%
 
 # mark them as ineligible as required 
 df_tee <- df_tee %>%
-  mutate(employment_eligibility = case_when(id %in% "mentee_44" ~ "Not eligible", # PhD student
+  mutate(employment_eligibility = case_when(id %in% "mentee_5" ~ "Not eligible", # PhD student & Research Assistant
+                                            id %in% "mentee_44" ~ "Not eligible", # PhD student
                                             id %in% "mentee_18" ~ "Not eligible", # PhD student
                                             id %in% "mentee_55" ~ "Not eligible", # PhD student
                                             TRUE ~ as.character("Eligible"))) %>% 
@@ -501,8 +511,8 @@ df_phd <- df_tee %>%
   # [breadcrumb: resolve awaiting information eligibility issues]
   
 df_tee <- df_tee %>%
-  mutate(conferral_eligibility = case_when(id %in% "mentee_9" ~ "Not eligible", # outcome of PhD submission?
-                                  id %in% "mentee_20" ~ "Information needed", # need info re: career interruptions
+  mutate(conferral_eligibility = case_when(id %in% "mentee_9" ~ "Not eligible", # does not yet hold a phd
+                                  id %in% "mentee_20" ~ "Not eligible", # email re: career interruptions
                                  TRUE ~ as.character("Eligible"))) %>% 
   mutate(conferral_eligibility = as.factor(conferral_eligibility))
 
@@ -550,7 +560,7 @@ df_tee <- df_tee %>%
   mutate(contract_eligibility = case_when(id %in% "mentee_5" ~ "Not eligible", # email
                                  id %in% "mentee_9" ~ "Not eligible", # email
                                  id %in% "mentee_15" ~ "Eligible", # contract extended [via email]
-                                 id %in% "mentee_31" ~ "Information needed", # email
+                                 id %in% "mentee_31" ~ "Eligible", # contract until end of year [via email]
                                  id %in% "mentee_49" ~ "Eligible", # contract extended [via email]
                                  id %in% "mentee_52" ~ "Eligible", # contract extended [via email]
                                  id %in% "mentee_54" ~ "Not eligible", # incomplete application too
@@ -571,6 +581,7 @@ contract_no_n_tee <- df_tee %>%
 
 
 ## CREATE OVERALL ELIGIBILITY VARIABLE ## 
+# keep the 'information needed' text because that will be helpful when I am in the middle of deciding eligibility
 
 df_tee <- df_tee %>%
   mutate(
@@ -673,10 +684,22 @@ long <- df %>%
     values_to = "rank"  
                )
 
-# recode the ranks to yes or NA for interest
+# recode the ranks to yes or NA for interest 
+  # [except some people entered other information, so I need to screen those out, as below]
 
-long2 <- long %>% 
-  mutate(interest = ifelse(rank %in% NA, NA, "yes")) 
+# long2 <- long %>% 
+#   mutate(interest = ifelse(rank %in% NA, NA, "yes")) 
+
+long2 <- long %>%
+  mutate(interest = case_when(rank == "no" ~ "no", 
+                                 rank == "No" ~ "no",
+                                 rank == "unsure" ~ "no",
+                                 rank == "Maybe" ~ "no",
+                                 rank == "Depending on discipline" ~ "no",
+                                 rank == "Some experience" ~ "no",
+                                 is.na(rank) ~ "no",
+                                 TRUE ~ as.character("yes"))) %>% 
+  mutate(interest = as.factor(interest))
 
 ```
 
@@ -807,7 +830,8 @@ eligibility criteria for the program. Below are the screening steps:
   multiple entries and `r dup_tor` mentor applications with multiple entries. 
   We removed incomplete copies of these duplicated applications.
   
-  *  Withdrawals: No one withdrew from the program before matching took place. 
+  *  Withdrawals: We had `r withdraw_n_tee` mentee applicant and `r withdraw_n_tor` 
+  mentor applicant withdraw from the program before matching took place. 
   
   *  Mentor eligibility:  We had `r level_no_n_tor` mentors who did not meet the 
   eligibility criteria for the program. These were likely mentees who accidentally 
@@ -818,9 +842,9 @@ eligibility criteria for the program. Below are the screening steps:
   who did not meet the eligibility criteria for the program. Specifically, we 
   had `r previous_no_n_tee` application from a mentee who previously participated in the program,
   `r employ_no_n_tee` applications from people who did not hold academic positions, 
-  `r level_no_n_tee` application from someone who holds a position above Level C, 
-  `r phd_no_n_tee` application from people who have not yet completed their PhD, and
-  `r contract_no_n_tee` application from people whose contracts will end before November 2025. 
+  `r phd_no_n_tee` application from people whose PhD was conferred more than 8 years ago or not 
+  yet conferred, and
+  `r contract_no_n_tee` application from someone whose contracts will end before November 2025. 
 
   *  Missing information: We removed `r nrow(no_areas_tee)`
   mentees from the data because they did not specify the areas for growth and
@@ -852,7 +876,8 @@ col_tee <- df_tee %>%
   ungroup
 
 
-col <- inner_join (col_tor, col_tee, by = "college")
+col <- full_join (col_tor, col_tee, by = "college") %>% 
+  replace(is.na(.), 0)
 
 # need to manually update the number of mentors and mentees in the header
 
@@ -861,7 +886,7 @@ knitr::kable (booktabs = T, linesep = "",
               col.names = c("College", "Number", "Percentage", "Number", "Percentage"), 
               caption = "Breakdown of Eligible Mentors and Mentees by College",
               align = 'lcc') %>% 
-    add_header_above(c(" " = 1, "Mentors (n = 44)" = 2, "Mentees (n = 41)" = 2)) %>% 
+    add_header_above(c(" " = 1, "Mentors (n = 43)" = 2, "Mentees (n = 39)" = 2)) %>% 
   styler_pdf() 
 
 

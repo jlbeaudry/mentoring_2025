@@ -94,6 +94,8 @@ meta_tee <- read_csv(here::here("00_data", "raw_data", "metadata_eoi_mentee.csv"
 
 ```
 
+\newpage
+
 ```{r area descriptions table}
 
 
