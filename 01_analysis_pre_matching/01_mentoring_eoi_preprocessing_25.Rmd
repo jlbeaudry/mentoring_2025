@@ -80,15 +80,15 @@ df_tee <- meta_rename(df = df_tee, metadata = meta_tee, old = old_variable, new 
 # first mentors [create two tibbles, capitalise, and then join them together again
   # if no one has lower case letters, then no need to create two tibbles. 
 
-df_tor <- df_tor %>% 
-#  filter(!str_detect(surname, ("van|da"))) %>% 
+df_tor1a <- df_tor %>% 
+  filter(!str_detect(surname, "O'Dea")) %>% 
   mutate(first_name = str_to_title(first_name)) %>% 
   mutate(surname = str_to_title(surname)) 
-# 
-# df_tor1b <- df_tor %>% 
-#   filter(str_detect(surname, ("van|da"))) 
-# 
-# df_tor <- full_join(df_tor1a, df_tor1b)
+
+df_tor1b <- df_tor %>%
+  filter(str_detect(surname, ("O'Dea"))) 
+
+df_tor <- full_join(df_tor1a, df_tor1b)
 
 # df_tor <- df_tor %>%
 #   mutate(first_name = str_to_title(first_name)) %>%
@@ -107,7 +107,7 @@ df_tee1b <- df_tee %>%
 df_tee <- full_join(df_tee1a, df_tee1b)
 
 # now remove these dataframes because we don't need them
-rm(df_tee1a, df_tee1b)
+rm(df_tee1a, df_tee1b, df_tor1a, df_tor1b)
 
 ```
 

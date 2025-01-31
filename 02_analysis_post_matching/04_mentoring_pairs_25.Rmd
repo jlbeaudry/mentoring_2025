@@ -33,7 +33,7 @@ options(knitr.duplicate.label = "allow") # use this when you use the child files
 ```{r notes to self, include=FALSE}
 
 # we have four back up mentors: 
- ### UPDATE
+ # mentor_42; mentor_28; mentor_38; mentor_22
 
 ```
 
@@ -64,20 +64,20 @@ source(here("..", "functions", "read_qualtrics.R"))
 
 # mentor data
 
-df_tor <- read_csv(here::here("processed_data", "eoi_mentor_eligible.csv"), lazy = FALSE)
+df_tor <- read_csv(here::here("00_data", "processed_data", "eoi_mentor_eligible.csv"), lazy = FALSE)
 
 # mentee data
 
-df_tee <- read_csv(here::here("processed_data", "eoi_mentee_eligible.csv"), lazy = FALSE)
+df_tee <- read_csv(here::here("00_data", "processed_data", "eoi_mentee_eligible.csv"), lazy = FALSE)
 
 # load metadata for the area variables
 
-meta_tor <- read_csv(here::here("raw_data", "metadata_eoi_mentor.csv"), lazy = FALSE) %>%
+meta_tor <- read_csv(here::here("00_data", "raw_data", "metadata_eoi_mentor.csv"), lazy = FALSE) %>%
     filter(scale == "areas")
 
 # load metadata for the area variables
 
-meta_tee <- read_csv(here::here("raw_data", "metadata_eoi_mentee.csv"), lazy = FALSE) %>%
+meta_tee <- read_csv(here::here("00_data", "raw_data", "metadata_eoi_mentee.csv"), lazy = FALSE) %>%
     filter(scale == "areas")
 
 ```
@@ -104,54 +104,56 @@ df_tee$id <- as.factor(df_tee$id)
   # The second number is the pair number.
 
 df_tor <- df_tor %>% 
-  mutate(pair = case_when(id %in% "mentor_" ~ "01",
-                          id %in% "mentor_" ~ "02",
-                          id %in% "mentor_" ~ "03",
-                          id %in% "mentor_" ~ "04",
-                          id %in% "mentor_" ~ "05",
-                          id %in% "mentor_" ~ "06",
-                          id %in% "mentor_" ~ "07",
-                          id %in% "mentor_" ~ "08",
-                          id %in% "mentor_" ~ "09",
-                          id %in% "mentor_" ~ "10",
-                          id %in% "mentor_" ~ "11",
-                          id %in% "mentor_" ~ "12",
-                          id %in% "mentor_" ~ "13",
-                          id %in% "mentor_" ~ "14",
-                          id %in% "mentor_" ~ "15",
-                          id %in% "mentor_" ~ "16",
-                          id %in% "mentor_" ~ "17",
-                          id %in% "mentor_" ~ "18",
-                          id %in% "mentor_" ~ "19",
-                          id %in% "mentor_" ~ "20",
-                          id %in% "mentor_" ~ "21",
-                          id %in% "mentor_" ~ "22",
-                          id %in% "mentor_" ~ "23",
-                          id %in% "mentor_" ~ "24",
-                          id %in% "mentor_" ~ "25",
-                          id %in% "mentor_" ~ "26",
-                          id %in% "mentor_" ~ "27",
-                          id %in% "mentor_" ~ "28",
-                          id %in% "mentor_" ~ "29",
-                          id %in% "mentor_" ~ "30",
-                          id %in% "mentor_" ~ "31",
-                          id %in% "mentor_" ~ "32",
-                          id %in% "mentor_" ~ "33",
-                          id %in% "mentor_" ~ "34",
-                          id %in% "mentor_" ~ "35",
-                          id %in% "mentor_" ~ "36",
-                          id %in% "mentor_" ~ "37",
-                          id %in% "mentor_" ~ "38",
+  mutate(pair = case_when(id %in% "mentor_25" ~ "01",
+                          id %in% "mentor_15" ~ "02",
+                          id %in% "mentor_44" ~ "03",
+                          id %in% "mentor_29" ~ "04",
+                          id %in% "mentor_10" ~ "05",
+                          id %in% "mentor_27" ~ "06",
+                          id %in% "mentor_35" ~ "07",
+                          id %in% "mentor_47" ~ "08",
+                          id %in% "mentor_1" ~ "09",
+                          id %in% "mentor_8" ~ "10",
+                          id %in% "mentor_39" ~ "11",
+                          id %in% "mentor_23" ~ "12",
+                          id %in% "mentor_20" ~ "13",
+                          id %in% "mentor_12" ~ "14",
+                          id %in% "mentor_2" ~ "15",
+                          id %in% "mentor_24" ~ "16",
+                          id %in% "mentor_21" ~ "17",
+                          id %in% "mentor_43" ~ "18",
+                          id %in% "mentor_45" ~ "19",
+                          id %in% "mentor_14" ~ "20",
+                          id %in% "mentor_30" ~ "21",
+                          id %in% "mentor_19" ~ "22",
+                          id %in% "mentor_3" ~ "23",
+                          id %in% "mentor_32" ~ "24",
+                          id %in% "mentor_13" ~ "25",
+                          id %in% "mentor_37" ~ "26",
+                          id %in% "mentor_36" ~ "27",
+                          id %in% "mentor_48" ~ "28",
+                          id %in% "mentor_4" ~ "29",
+                          id %in% "mentor_26" ~ "30",
+                          id %in% "mentor_7" ~ "31",
+                          id %in% "mentor_49" ~ "32",
+                          id %in% "mentor_33" ~ "33",
+                          id %in% "mentor_22" ~ "34",
+                          id %in% "mentor_40" ~ "35",
+                          id %in% "mentor_17" ~ "36",
+                          id %in% "mentor_6" ~ "37",
+                          id %in% "mentor_34" ~ "38",
+                          id %in% "mentor_5" ~ "39",
                           TRUE ~ as.character("not paired"))) %>% 
            mutate(pair = as.factor(pair)) 
         
          
-# now show me those who have not been paired
+# now show me those who have NOT been paired
 
 df_tor_to_pair <- df_tor %>% 
-  filter(pair == "not paired")
+  filter(pair == "not paired") %>% 
+  select(c(name, college, email))
 
-# show the mentors who are paired
+# show the mentors who are paired & check the number of obs to my list
 
 df_tor_check <- df_tor %>% 
   filter(pair != "not paired")
@@ -160,7 +162,17 @@ df_tor_check <- df_tor %>%
 
 df_tor_check %>% get_dupes(pair)
 
-rm(df_tor_check, df_tor_to_pair)
+
+
+#### WRITE DATA ####
+  
+# when done pairing, write the data to a new file to make it easier to email folks & so I have a record
+# row.names gets rid of the first column from the dataframe.
+
+write.csv(df_tor_to_pair, here::here("00_data", "paired_data", "mentors_not_paired_prioritise_next_year.csv"), row.names = FALSE)
+
+
+rm(df_tor_check)
 
 ```
 
@@ -173,44 +185,45 @@ rm(df_tor_check, df_tor_to_pair)
   # The second number is the pair number.
 
 df_tee <- df_tee %>% 
-  mutate(pair = case_when(id %in% "mentee_" ~ "01",
-                          id %in% "mentee_" ~ "02",
-                          id %in% "mentee_" ~ "03",
-                          id %in% "mentee_" ~ "04",
-                          id %in% "mentee_" ~ "05",
-                          id %in% "mentee_" ~ "06",
-                          id %in% "mentee_" ~ "07",
-                          id %in% "mentee_" ~ "08",
-                          id %in% "mentee_" ~ "09",
-                          id %in% "mentee_" ~ "10",
-                          id %in% "mentee_" ~ "11",
-                          id %in% "mentee_" ~ "12",
-                          id %in% "mentee_" ~ "13",
-                          id %in% "mentee_" ~ "14",
-                          id %in% "mentee_" ~ "15",
-                          id %in% "mentee_" ~ "16",
-                          id %in% "mentee_" ~ "17",
-                          id %in% "mentee_" ~ "18",
-                          id %in% "mentee_" ~ "19",
-                          id %in% "mentee_" ~ "20",
-                          id %in% "mentee_" ~ "21",
-                          id %in% "mentee_" ~ "22",
-                          id %in% "mentee_" ~ "23",
-                          id %in% "mentee_" ~ "24",
-                          id %in% "mentee_" ~ "25",
-                          id %in% "mentee_" ~ "26",
-                          id %in% "mentee_" ~ "27",
-                          id %in% "mentee_" ~ "28",
-                          id %in% "mentee_" ~ "29",
-                          id %in% "mentee_" ~ "30",
-                          id %in% "mentee_" ~ "31",
-                          id %in% "mentee_" ~ "32",
-                          id %in% "mentee_" ~ "33",
-                          id %in% "mentee_" ~ "34",
-                          id %in% "mentee_" ~ "35",
-                          id %in% "mentee_" ~ "36",
-                          id %in% "mentee_" ~ "37",
-                          id %in% "mentee_" ~ "38",
+  mutate(pair = case_when(id %in% "mentee_47" ~ "01",
+                          id %in% "mentee_41" ~ "02",
+                          id %in% "mentee_40" ~ "03",
+                          id %in% "mentee_51" ~ "04",
+                          id %in% "mentee_10" ~ "05",
+                          id %in% "mentee_13" ~ "06",
+                          id %in% "mentee_2" ~ "07",
+                          id %in% "mentee_7" ~ "08",
+                          id %in% "mentee_4" ~ "09",
+                          id %in% "mentee_29" ~ "10",
+                          id %in% "mentee_49" ~ "11",
+                          id %in% "mentee_35" ~ "12",
+                          id %in% "mentee_16" ~ "13",
+                          id %in% "mentee_32" ~ "14",
+                          id %in% "mentee_52" ~ "15",
+                          id %in% "mentee_17" ~ "16",
+                          id %in% "mentee_50" ~ "17",
+                          id %in% "mentee_3" ~ "18",
+                          id %in% "mentee_45" ~ "19",
+                          id %in% "mentee_24" ~ "20",
+                          id %in% "mentee_12" ~ "21",
+                          id %in% "mentee_25" ~ "22",
+                          id %in% "mentee_6" ~ "23",
+                          id %in% "mentee_43" ~ "24",
+                          id %in% "mentee_39" ~ "25",
+                          id %in% "mentee_8" ~ "26",
+                          id %in% "mentee_48" ~ "27",
+                          id %in% "mentee_36" ~ "28",
+                          id %in% "mentee_15" ~ "29",
+                          id %in% "mentee_30" ~ "30",
+                          id %in% "mentee_26" ~ "31",
+                          id %in% "mentee_34" ~ "32",
+                          id %in% "mentee_14" ~ "33",
+                          id %in% "mentee_28" ~ "34",
+                          id %in% "mentee_37" ~ "35",
+                          id %in% "mentee_53" ~ "36",
+                          id %in% "mentee_46" ~ "37",
+                          id %in% "mentee_31" ~ "38",
+                          id %in% "mentee_1" ~ "39",
                           TRUE ~ as.character("not paired"))) %>% 
            mutate(pair = as.factor(pair)) %>% 
   relocate(pair, .after=id)
@@ -235,8 +248,9 @@ df_tee_check %>% get_dupes(pair)
   
 # when done pairing, write the data to a new file to make it easier to email folks
 # row.names gets rid of the first column from the dataframe.
+# none this year
 
-write.csv(df_tee_to_pair, here::here("paired_data", "not_paired_prioritise_next_year.csv"), row.names = FALSE)
+# write.csv(df_tee_to_pair, here::here("paired_data", "not_paired_prioritise_next_year.csv"), row.names = FALSE)
 
 rm(df_tee_check, df_tee_to_pair)
 
@@ -295,24 +309,29 @@ df <- full_join(df_tor, df_tee)
 
 
 Table \ref{tab:college_breakdown} shows the number of mentees and mentors per 
-College who were selected to participate in the program. For the first time ever,
-we have had more mentors express an interest in the program than mentees. This 
-is likely the result of our concerted efforts to attract more mentors to the
-program along with the possibility that we are adequately meeting the demand from 
-our Early Career Researcher community, given the larger cohorts that we have had
-in the previous 3 years (30--38 pairs, compared to 12--20 pairs in the past). 
-We are reserving the 4 mentors that we were unable to pair as backup in case any of 
-our other mentors is unable to participate in the program. 
+College who were selected to participate in the program. 
 
-# check this text
+For the first time ever, we have had more mentors express an interest in the 
+program than mentees. This is likely the result of our concerted efforts to 
+attract more mentors to the program along with the possibility that we are 
+adequately meeting the demand from our Early Career Researcher community, 
+given the larger cohorts that we have had in the previous 3 years (30--38 pairs, 
+compared to 12--20 pairs in the past). 
+
+We are reserving the `r nrow(df_tor_to_pair)` mentors that we were unable to 
+match as backup in case any of our other mentors is unable to participate in the 
+program. We will also prioritise their involvement in the program next year so they
+have a chance to develop and implement their mentoring skills and expand their 
+network at Flinders. 
+
 The percentage column represents the percentage of mentors from each 
-College and the percentage of mentees from each College. As evident from this table, 
-the Colleges of Business, Government and Law; Education, Psychology and Social Work; 
-and Humanities, Arts and Social Sciences had a larger percentage of mentors than 
-mentees in the program. College of Medicine and Public Health had the largest 
-percentage of mentees in the program, which was not the case for the mentors. Both 
-College of Nursing and Health Sciences and College of Science and Engineering had 
-similar percentages of mentees and mentors in the program. 
+College and the percentage of mentees from each College who are participating
+in this year's program. As evident from this table, 
+the College of Humanities, Arts and Social Sciences had a larger percentage of mentors
+compared to the percentage of mentees in the program this year. 
+The College of Medicine and Public Health had the largest 
+percentage of mentees in the program, which was not the case for the mentors. The 
+other Colleges had similar percentages of mentees and mentors in the program. 
 
 
 ```{r college_breakdown, include=TRUE}
@@ -334,7 +353,8 @@ col_tee <- df_tee %>%
   ungroup
 
 
-col <- inner_join (col_tor, col_tee, by = "college")
+col <- full_join (col_tor, col_tee, by = "college") %>% 
+    replace(is.na(.), 0)
 
 # need to manually update the number of mentors and mentees in the header
 
@@ -343,7 +363,7 @@ knitr::kable (booktabs = T, linesep = "",
               col.names = c("College", "Number", "Percentage", "Number", "Percentage"), 
               caption = "Breakdown of Mentors and Mentees by College",
               align = 'lcc') %>% 
-    add_header_above(c(" " = 1, "Mentors (n = 38)" = 2, "Mentees (n = 38)" = 2)) %>% 
+    add_header_above(c(" " = 1, "Mentors (n = 39)" = 2, "Mentees (n = 39)" = 2)) %>% 
   styler_pdf() 
 
 
@@ -447,6 +467,7 @@ pairs_by_role <- pairs %>%
 # select(-c(college_mentor, college_mentee, name_mentee, name_mentor, contains(c("email", "first_name"))))
 # 
 # USE THIS VERSION BECAUSE IT KEEPS EVERYTHING ON ONE LINE
+
 simple_pairs <- pairs_by_role %>%
 select(-c(college_mentor, college_mentee, name_mentee, name_mentor, `name and college_mentee`,
           `name and college_mentor`, contains(c("email", "first_name"))))
@@ -470,7 +491,7 @@ simple_pairs %>%
 # when done preprocessing, write the data to new files
 # row.names gets rid of the first column from the dataframe.
 
-write.csv(simple_pairs, here::here("paired_data", "pairs.csv"), row.names = FALSE)
+write.csv(simple_pairs, here::here("00_data", "paired_data", "pairs.csv"), row.names = FALSE)
 
 
 ```
@@ -478,7 +499,7 @@ write.csv(simple_pairs, here::here("paired_data", "pairs.csv"), row.names = FALS
 
 ```{r pairs details for emails, eval = FALSE}
 
-# get the email details
+# get the email details 
   
 pairs_by_role_emails <- pairs_by_role %>% 
   select(-contains(c("first_name", "name and college")))
@@ -489,34 +510,34 @@ pairs_by_role_emails <- pairs_by_role %>%
 # when done pairing, write the data to a new file to make it easier to email folks
 # row.names gets rid of the first column from the dataframe.
 
-write.csv(pairs_by_role_emails, here::here("paired_data", "pairs_with_emails.csv"), row.names = FALSE)
+write.csv(pairs_by_role_emails, here::here("00_data", "paired_data", "pairs_with_emails.csv"), row.names = FALSE)
 
 
 ```
 
-```{r mentee details for mail merge, eval = TRUE, include = FALSE}
+```{r details for mail merge, eval = TRUE, include = FALSE}
 
 # edit the text so I can copy the name and college from excel
 
 pairs_by_role <- pairs_by_role %>% 
-  mutate (`name and college_mentor` = str_replace(`name and college_mentor`, " - ", " from the College of ")) %>% 
-    mutate (`name and college_mentee` = str_replace(`name and college_mentee`, " - ", " from the College of "))
+  mutate (`name_and_college_mentor` = str_replace(`name and college_mentor`, " - ", " from the College of ")) %>% 
+    mutate (`name_and_college_mentee` = str_replace(`name and college_mentee`, " - ", " from the College of "))
 
 for_mentees_for_merge <- pairs_by_role %>% 
-  select(c(email_mentee, first_name_mentee, `name and college_mentor`, first_name_mentor)) %>% 
-  relocate(first_name_mentee)
+  select(c(email_mentee, first_name_mentee, name_and_college_mentor, first_name_mentor)) %>% 
+  relocate(email_mentee, .after = last_col())
 
 for_mentors_for_merge <- pairs_by_role %>% 
-  select(c(email_mentor, first_name_mentee, `name and college_mentee`, first_name_mentor)) %>% 
-    relocate(first_name_mentor)
+  select(c(email_mentor, first_name_mentee, name_and_college_mentee, first_name_mentor)) %>% 
+    relocate(email_mentor, .after = last_col())
 
 #### WRITE DATA ####
   
 # write a new file for both roles for use with mail merge
 
-write.csv(for_mentors_for_merge, here::here("paired_data", "for_mentors_with_merge.csv"), row.names = FALSE)
+write.csv(for_mentors_for_merge, here::here("00_data", "paired_data", "for_mentors_with_merge.csv"), row.names = FALSE)
 
-write.csv(for_mentees_for_merge, here::here("paired_data", "for_mentees_with_merge.csv"), row.names = FALSE)
+write.csv(for_mentees_for_merge, here::here("00_data", "paired_data", "for_mentees_with_merge.csv"), row.names = FALSE)
 
 ```
 
@@ -544,7 +565,7 @@ dietary %>%
 # when done preprocessing, write the data to new files
 # row.names gets rid of the first column from the dataframe.
 
-write.csv(dietary, here::here("paired_data", "dietary.csv"), row.names = FALSE)
+write.csv(dietary, here::here("00_data", "paired_data", "dietary.csv"), row.names = FALSE)
 
 ```
 
@@ -572,7 +593,7 @@ campus %>%
 # when done preprocessing, write the data to new files
 # row.names gets rid of the first column from the dataframe.
 
-write.csv(campus, here::here("paired_data", "campus.csv"), row.names = FALSE)
+write.csv(campus, here::here("00_data", "paired_data", "campus.csv"), row.names = FALSE)
 
 ```
 
@@ -625,7 +646,7 @@ se_tor <- df_tor %>% filter(str_detect(college, "Engineering")) %>% select(name)
 # 
 # write.csv(tee_filtered, file = str_glue("tee_{college}.csv"), row.names = FALSE)
 
-write <- function(x, file, folder = here::here("paired_data")) {
+write <- function(x, file, folder = here::here("00_data", "paired_data")) {
   write.csv(x, file = str_glue("tee_(x).csv"))
 }
 

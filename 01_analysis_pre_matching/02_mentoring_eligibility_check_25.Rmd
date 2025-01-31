@@ -374,7 +374,7 @@ df_prior <- read_xlsx(
 #  n_max = 129,  #
 #  .name_repair = "unique",
   trim_ws = TRUE) %>% 
-  select (Mentee) 
+  select (Mentee, Year) 
 
 # select only the mentee's names for this year's applicants
 df_tee_name <- df_tee %>% 
@@ -875,7 +875,7 @@ col_tee <- df_tee %>%
   arrange(college) %>% 
   ungroup
 
-
+# keep the cell that is empty 
 col <- full_join (col_tor, col_tee, by = "college") %>% 
   replace(is.na(.), 0)
 
