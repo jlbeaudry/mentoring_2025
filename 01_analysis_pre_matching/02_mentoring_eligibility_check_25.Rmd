@@ -951,10 +951,11 @@ knitr::kable (
 ```
 
 
-```{r mentor details for matching process, include = TRUE}
+```{r mentor details for matching process, include = FALSE}
 
 #this will include their mentoring id number in the table for ease. We don't want
-  # to include that for the enduring report though.
+  # to include that for the enduring report though. For the report, make this false
+  # and include the next chunk.
 
 # identify the mentors in each college
 
@@ -984,7 +985,7 @@ knitr::kable (
 # as_image(file = here::here("images", "mentors.png"))
 ```
 
-```{r mentor details for report, include = FALSE}
+```{r mentor details for report, include = TRUE}
 
 #use this code for the report; it takes out their id number
 
@@ -1013,7 +1014,8 @@ knitr::kable (
 
 \newpage
 
-```{r mentee details for matching process, include = TRUE}
+```{r mentee details for matching process, include = FALSE}
+# same re the report
 
 # identify the mentees in each college
 
@@ -1041,7 +1043,7 @@ knitr::kable (
 
 ```
 
-```{r mentee details for report, include = FALSE}
+```{r mentee details for report, include = TRUE}
 
 # identify the mentees in each college
 

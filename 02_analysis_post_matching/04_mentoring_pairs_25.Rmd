@@ -319,7 +319,7 @@ given the larger cohorts that we have had in the previous 3 years (30--38 pairs,
 compared to 12--20 pairs in the past). 
 
 We are reserving the `r nrow(df_tor_to_pair)` mentors that we were unable to 
-match as backup in case any of our other mentors is unable to participate in the 
+match as backup in case any of our other mentors are unable to participate in the 
 program. We will also prioritise their involvement in the program next year so they
 have a chance to develop and implement their mentoring skills and expand their 
 network at Flinders. 
@@ -474,7 +474,7 @@ select(-c(college_mentor, college_mentee, name_mentee, name_mentor, `name and co
 
 
 simple_pairs %>% 
-  knitr::kable (booktabs = T, linesep = "\\addlinespace",
+  knitr::kable (booktabs = F, linesep = "\\addlinespace",
   col.names = c("Pair", "Mentee", "Mentor"),
   caption = "Details of Matched Pairs", 
   align = 'cll', 
