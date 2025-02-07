@@ -436,9 +436,9 @@ knitr::kable (
 
 \newpage
 
-Table \ref{tab:pairs_details} shows which mentor each mentee was paired with. 
+Table \ref{tab:pairs_details_for_report} shows which mentor each mentee was paired with. 
 
-```{r pairs_details, include=TRUE}
+```{r pairs_details_for_pairing_test, include=TRUE, eval = FALSE}
 
 # select the key info that I want to show
 
@@ -465,18 +465,20 @@ pairs_by_role <- pairs %>%
 # # decide which version I want [if I select this version, I will have to change the kable]
 # simple_pairs <- pairs_by_role %>% 
 # select(-c(college_mentor, college_mentee, name_mentee, name_mentor, contains(c("email", "first_name"))))
-# 
+
 # USE THIS VERSION BECAUSE IT KEEPS EVERYTHING ON ONE LINE
 
 simple_pairs <- pairs_by_role %>%
 select(-c(college_mentor, college_mentee, name_mentee, name_mentor, `name and college_mentee`,
-          `name and college_mentor`, contains(c("email", "first_name"))))
+          `name and college_mentor`, contains(c("email", "first_name")))) %>% 
+      arrange ()
 
 
 simple_pairs %>% 
   knitr::kable (booktabs = F, linesep = "\\addlinespace",
   col.names = c("Pair", "Mentee", "Mentor"),
-  caption = "Details of Matched Pairs", 
+  caption = sprintf("Details of Matched Pairs (n = %d)",
+            n_pairs),
   align = 'cll', 
   longtable = T) %>%
   column_spec(2, width = "3in") %>% 
@@ -495,6 +497,72 @@ write.csv(simple_pairs, here::here("00_data", "paired_data", "pairs.csv"), row.n
 
 
 ```
+
+\renewcommand{\arraystretch}{1.5}
+```{r pairs_details_for_report, include=TRUE}
+
+# latex code above adds whitespace to the table: https://stackoverflow.com/questions/53794142/increase-line-row-spacing-with-kableextra
+
+# select the key info that I want to show [remove pair number for the final report]
+
+pairs <- df %>% 
+  select(pair, first_name, name, college, `name and college`, `name and college_abb`, email, role) %>% 
+  arrange(pair) %>% 
+  ungroup
+
+# number of pairs
+
+n_pairs <- length(unique(pairs$pair))
+
+pairs_by_role <- pairs %>% 
+  pivot_wider(
+    names_from = role,
+    values_from = c(first_name, name, college, `name and college`, `name and college_abb`, email)
+  ) %>% 
+  relocate(contains("_mentor"), .after = last_col())
+
+# # decide which version I want
+# simple_pairs <- pairs_by_role %>% 
+#   select(-c(contains(c("email", "first_name", "name and college"))))
+
+# # decide which version I want [if I select this version, I will have to change the kable]
+# simple_pairs <- pairs_by_role %>% 
+# select(-c(college_mentor, college_mentee, name_mentee, name_mentor, contains(c("email", "first_name"))))
+
+# USE THIS VERSION BECAUSE IT KEEPS EVERYTHING ON ONE LINE
+
+simple_pairs <- pairs_by_role %>%
+select(-c(pair, college_mentor, college_mentee, name_mentee, name_mentor, `name and college_mentee`,
+          `name and college_mentor`, contains(c("email", "first_name")))) %>% 
+      arrange (`name and college_abb_mentee`, `name and college_abb_mentor`)
+
+
+simple_pairs %>% 
+  knitr::kable (format = "latex",
+                booktabs = TRUE, 
+                linesep = "", #removes the extra space every 5 rows
+  col.names = c("Mentee", "Mentor"),
+  caption = sprintf("Details of Matched Pairs (n = %d)",
+            n_pairs),
+  align = 'll', 
+  longtable = T) %>%
+  column_spec(1, width = "3in") %>% 
+  column_spec(2, width = "3in") %>% 
+  kable_styling(full_width = F, 
+                latex_options = c("repeat_header", "hold_position", "striped"))
+
+
+
+#### WRITE DATA ####
+  
+# when done preprocessing, write the data to new files
+# row.names gets rid of the first column from the dataframe.
+
+write.csv(simple_pairs, here::here("00_data", "paired_data", "pairs.csv"), row.names = FALSE)
+
+
+```
+
 
 
 ```{r pairs details for emails, eval = FALSE}
