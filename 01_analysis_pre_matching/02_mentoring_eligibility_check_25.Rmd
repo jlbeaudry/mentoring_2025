@@ -895,7 +895,9 @@ knitr::kable (booktabs = T, linesep = "",
 
 \newpage
 
-```{r ineligible mentee details to double check, include = TRUE}
+```{r ineligible mentee details to double check, include = FALSE}
+
+# do not include this in the final report, but use it to double check our data
 
 # identify the mentees in each college
 
@@ -906,7 +908,7 @@ df_tee_inel_details <- df_tee_inel %>%
 inel_tee <- nrow(df_tee_inel_details)
 
 knitr::kable (
-  df_tee_inel_details[, c(2,3,1,4)], # select only the names and levels columns
+  df_tee_inel_details[, c(2,3,1,4)], # put the columns in the right order
   booktabs = T,
   linesep = "",
   col.names = c("Names", "Mentee Number", "College", "Eligibility"),
@@ -923,7 +925,9 @@ knitr::kable (
 ```
 
 
-```{r ineligible mentor details to double check, include = TRUE}
+```{r ineligible mentor details to double check, include = FALSE}
+
+# do not include this in the final report, but use it to double check our data
 
 # identify the mentees in each college
 
@@ -1012,7 +1016,7 @@ knitr::kable (
 
 ```
 
-\newpage
+
 
 ```{r mentee details for matching process, include = FALSE}
 # same re the report

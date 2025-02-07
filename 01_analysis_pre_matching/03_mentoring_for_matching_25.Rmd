@@ -17,6 +17,7 @@ header-includes:
   - \pagestyle{fancy} # sets the footer on page 2 and beyond
   - \fancyhf{} # clears existing header & footer
   - \renewcommand{\headrulewidth}{0pt} # removes the line from the header
+  - \renewcommand{\arraystretch}{1.4} #adds whitespace to all tables
   - \fancyfoot[L]{Jen Beaudry} # my name in footer
   - \fancyfoot[R]{\thepage} # page number in foooter
 ---
@@ -98,7 +99,6 @@ meta_tee <- read_csv(here::here("00_data", "raw_data", "metadata_eoi_mentee.csv"
 
 ```{r area descriptions table}
 
-
 ## mentees 
 
 meta_areas_tee <- meta_tee %>%
@@ -106,7 +106,7 @@ meta_areas_tee <- meta_tee %>%
   select (c(new_variable, item_text_short))
 
 meta_areas_tee %>%
-  knitr::kable (booktabs = T, linesep = "\\addlinespace",
+  knitr::kable (format = "latex", booktabs = T, linesep = "",
   col.names = c("Area", "Brief description"),
   caption = "Description of Areas for Development",
   align = 'll'
@@ -141,7 +141,7 @@ total_tor <- nrow(mentor_areas_wide)
 mentor_areas_wide %>% 
   select(c(name, college, level_recode, areas)) %>% 
   arrange(name) %>% 
-knitr::kable (booktabs = T, linesep = "\\addlinespace", # add extra white space
+knitr::kable (format = "latex", booktabs = T, linesep = "",
               col.names = c("Mentor", "College", "Level", "Areas to Mentor"), 
               caption = 
                 sprintf("Areas of Interest by Mentor (n = %d)",
@@ -166,7 +166,7 @@ total_tee <- nrow(mentee_areas_wide)
 mentee_areas_wide %>% 
   select(c(name, college, level_recode, areas)) %>% 
   arrange(name) %>% 
-knitr::kable (booktabs = T, linesep = "\\addlinespace",
+knitr::kable (format = "latex", booktabs = T, linesep = "",
               col.names = c("Mentee", "College", "Level", "Areas for Growth"), 
               caption = 
                 sprintf("Areas of Interest by Mentee (n = %d)",
@@ -220,7 +220,7 @@ names_wide_tor2 <- names_wide_tor %>%
 
 names_wide_tor2 %>% 
   select(c(areas, names)) %>% 
-knitr::kable (booktabs = T, linesep = "\\addlinespace",
+knitr::kable (format = "latex", booktabs = T, linesep = "",
               col.names = c("Areas", "Interested Mentors"), 
               caption = 
                 sprintf("Mentors by Areas of Interest (n = %d)",
@@ -255,7 +255,7 @@ names_wide_tee2 <- names_wide_tee %>%
 
 names_wide_tee2 %>% 
   select(c(areas, names)) %>% 
-knitr::kable (booktabs = T, linesep = "\\addlinespace",
+knitr::kable (format = "latex", booktabs = T, linesep = "",
               col.names = c("Areas", "Mentees"), 
               caption = 
                 sprintf("Mentees by Areas for Growth (n = %d)", 
@@ -334,10 +334,11 @@ We explored how many mentees indicated that they wanted to be
 mentored in various areas of need (see Table \ref{tab:number_of_mentees_per_area_table}). '`r count_with_des[1,1]`' was the most common area of interest 
 whereas '`r count_with_des[21,1]`' was a more niche area of need. 
 
+
 ```{r number_of_mentees_per_area_table, eval=TRUE}
 
 count_with_des %>% 
-  knitr::kable (booktabs = T, linesep = "\\addlinespace",
+  knitr::kable (format = "latex", booktabs = T, linesep = "",
   col.names = c("Area for mentoring", "Number of mentees"),
   caption = 
     sprintf("Number of eligible mentees (n = %d) who wanted to be mentored in different areas", 
@@ -383,7 +384,7 @@ area of support.
 ```{r number_of_mentors_per_area_table, eval=TRUE, include=TRUE}
 
 count_with_des %>% 
-  knitr::kable (booktabs = T, linesep = "\\addlinespace",
+  knitr::kable (format = "latex", booktabs = T, linesep = "",
   col.names = c("Area for mentoring", "Number of mentors"),
   caption = 
     sprintf("Number of eligible mentors (n = %d) who could provide mentoring in different areas", 
