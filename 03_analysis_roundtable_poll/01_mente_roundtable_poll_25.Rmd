@@ -1,0 +1,244 @@
+---
+title: "Researcher Mentoring Program for Early Career Researchers (2025)"
+subtitle: "Mentee's Rankings of Roundtable Topics"
+#author: "Jen Beaudry"
+#date: "March 2025"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+header-includes:
+  - \usepackage{titling}
+    \setlength{\droptitle}{-2cm} # removes some of the white space above title
+  - \pretitle{\begin{center}
+    \includegraphics[width=1.5in, height=1.5in]{flinders-university-horizontal-master.png}\LARGE\\} # adds logo
+  - \posttitle{\end{center}}
+  - \usepackage{fancyhdr}
+  - \fancypagestyle{plain}{\pagestyle{fancy}} # sets the footer on page 1
+  - \pagestyle{fancy} # sets the footer on page 2 and beyond
+  - \fancyhf{} # clears existing header & footer
+  - \renewcommand{\headrulewidth}{0pt} # removes the line from the header
+  - \renewcommand{\arraystretch}{1.4} #adds whitespace to all tables
+  - \fancyfoot[L]{Jen Beaudry} # my name in footer
+  - \fancyfoot[R]{\thepage} # page number in foooter
+---
+
+```{r setup, include = FALSE}
+
+knitr::opts_chunk$set(echo = FALSE, 
+                      include = FALSE, 
+                      fig.path = here::here("figs"))
+
+options(knitr.duplicate.label = "allow") # use this when you use the child files
+
+```
+
+
+```{r functions, include=FALSE}
+
+styler_pdf <- function(dat) {
+  dat %>%
+     kableExtra::kable_styling(full_width = F, 
+                latex_options = c("striped", "HOLD_position"))
+}
+
+```
+
+
+```{r library}
+
+library(here)
+library(tidyverse)
+library(kableExtra)
+library(finalfit)
+
+source(here("..", "functions", "read_qualtrics.R"))
+source(here("..", "functions", "meta_rename.R"))
+
+```
+
+```{r load data}
+
+
+# poll data
+df <- here::here("00_data", "poll_data", "raw_mentee_poll.csv") %>%
+  read_qualtrics(legacy = FALSE) %>%
+  select(-c("start_date":"user_language")) %>% 
+ # filter(!is.na(topic_1)) %>% # remove anyone that didn't provide a ranking for topic 1 (but rethink this to look for missing all  ranks)
+  mutate(id = 1:n()) %>%  
+  relocate(id, .before = topic_1) 
+
+
+# load metadata 
+meta <- read_csv(here::here("00_data", "poll_data", "metadata_mentee_poll.csv"), lazy = FALSE) %>%
+  filter(old_variable != "NA", old_variable != "exclude") # remove the instruction variables
+
+```
+
+
+```{r recode variables}
+
+# recode variable labels according to metadata
+
+df <- meta_rename(df = df, metadata = meta, old = old_variable, new = new_variable)
+
+```
+
+
+```{r create new variables}
+
+meta <- meta %>% 
+  rename (topic = new_variable)
+
+
+```
+
+```{r change variable types, eval = FALSE}
+
+# change the type of variables from numbers to characters
+
+df_tee <- df_tee %>% 
+  mutate_if(is.numeric, as.character)
+
+df_tor <- df_tor %>% 
+  mutate_if(is.numeric, as.character)
+
+```
+
+
+```{r poll topic means, include = FALSE}
+
+# 1 = most popular topic
+# 10 = least popular topic
+
+# select columns that relate to norms & pivot it long
+df_long <- df %>% 
+  dplyr::select(c("well-being":"other")) %>%
+      pivot_longer (cols = "well-being":"other",
+                names_to = "topic",
+                values_to = "ranking") 
+
+# get the n values for each of the topics
+topic_counts <- df_long %>% 
+    dplyr::group_by(topic) %>%  
+    count() %>% 
+  ungroup()
+
+# calculate means
+topic_ms_sds <- df_long %>% 
+    dplyr::group_by(topic) %>%  
+    summarise(ranking_mean = round(mean(ranking),2), 
+              ranking_sd = round(sd(ranking),2)) %>% 
+  ungroup()
+
+
+# create a df with the info I want and then join with the means tibbles
+
+poll_items <- meta %>% 
+  filter(scale == "topics") %>% 
+  select (c(topic, item_text))
+
+df_means_long <- poll_items %>% 
+  inner_join(topic_ms_sds) %>% 
+  inner_join(topic_counts)
+
+
+# calculate 95% CIs
+error <- qnorm(0.975) * df_means_long$ranking_sd/sqrt(df_means_long$n)
+df_means_long$lower <- df_means_long$ranking_mean - error
+df_means_long$upper <- df_means_long$ranking_mean + error
+
+
+# combine means & SDs
+df_means_long$mean_sd <- paste0(round_tidy(df_means_long$ranking_mean,2),
+                          " (", 
+                          round_tidy(df_means_long$ranking_sd,2), 
+                          ")")
+
+# clean it up into a new dataframe with only the columns we need
+topic_means <- df_means_long %>% 
+  dplyr::select(topic, item_text, n, mean_sd) %>% 
+  arrange(-desc(mean_sd))
+
+```
+
+\renewcommand{\arraystretch}{1.5}
+```{r poll topic means table, include = TRUE}
+
+# 1 = most popular topic
+# 10 = least popular topic
+
+topic_means %>%
+  knitr::kable(
+    format = "latex",
+    booktabs = T,
+    longtable = T,
+    linesep = "",
+    caption = "Mean ranks and standard deviations for roundtable topics (1 = most preferred)",
+    col.names = c("Topic Name", "Topic Details", "N", "Means (SD)"),
+    align = c('llcc')
+  ) %>% 
+  kableExtra::column_spec(2, width = "3in") %>%
+  styler_pdf()
+
+```
+
+\vline
+```{r other topic ideas, include = TRUE}
+
+# create a table with the other ideas for roundtables
+
+df_others <- df %>% 
+  filter(!is.na(ideas)) %>% 
+  select (c(ideas))
+
+
+df_others %>%
+  knitr::kable(
+    format = "latex",
+    booktabs = T,
+    linesep = "",
+    caption = "Other suggesions for roundtable topics from mentees",
+    col.names = c("Suggested Topics"),
+    align = c('l')
+  ) %>% 
+  kableExtra::column_spec(1, width = "6in") %>%
+  styler_pdf()
+
+
+```
+
+\vline
+
+```{r rankhistogram, fig.cap="Histogram of Mentees' Rankings of Roundtable Topics (1 = most preferred)", include = TRUE}
+
+# come back to this if I want to change the labels using labeller
+practice_labels <- c(
+  available_data = "Data on\nrequest",
+  info_for_rep = "Information\nfor replication",
+  harking = "HARKing",
+  phack = "p-hacking",
+  open_access = "Open access",
+  registered_reports = "Registered reports",
+  open_data = "Open data",
+  open_materials = "Open\nmaterials",
+  preprint_pre = "Preprints",
+  preregistration = "Preregistration",
+  registered_report = "Registered\nreport"
+)
+
+# breadcrumb: can I change the order so it reflects the order of preference?
+
+df_long %>%
+  ggplot(aes(x = ranking)) +
+  geom_histogram(aes(y=after_stat(count)), binwidth = 1, colour = "black", fill = "lightblue") +
+    xlab("Rankings (1 = most preferred)") +
+    ylab("Frequency") +
+    theme_classic () +
+    theme(axis.text = element_text(size = 9), axis.title = element_text(size = 9)) +
+    scale_x_continuous(breaks = seq(1,10,9)) +
+    facet_wrap(~topic, nrow = 2)
+  
+
+# labeller = labeller(practice = practice_labels
+```
+
