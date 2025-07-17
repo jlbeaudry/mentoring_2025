@@ -212,7 +212,7 @@ df_others %>%
 ```{r rankhistogram, fig.cap="Histogram of Mentees' Rankings of Roundtable Topics (1 = most preferred)", include = TRUE}
 
 # come back to this if I want to change the labels using labeller
-practice_labels <- c(
+labels <- c(
   available_data = "Data on\nrequest",
   info_for_rep = "Information\nfor replication",
   harking = "HARKing",
@@ -226,9 +226,14 @@ practice_labels <- c(
   registered_report = "Registered\nreport"
 )
 
-# breadcrumb: can I change the order so it reflects the order of preference?
 
-df_long %>%
+# rearrange based on the order of the mean ranks
+neworder <-  c("narrative_ninja", "panel", "promotion", "well-being", "researchnow", 
+               "project_management", "cv_workshop", "using_ai", "media", "other") 
+
+df_long2 <- arrange(mutate(df_long, topic = factor(topic, levels = neworder)), topic)
+
+df_long2 %>%
   ggplot(aes(x = ranking)) +
   geom_histogram(aes(y=after_stat(count)), binwidth = 1, colour = "black", fill = "lightblue") +
     xlab("Rankings (1 = most preferred)") +
@@ -236,7 +241,7 @@ df_long %>%
     theme_classic () +
     theme(axis.text = element_text(size = 9), axis.title = element_text(size = 9)) +
     scale_x_continuous(breaks = seq(1,10,9)) +
-    facet_wrap(~topic, nrow = 2)
+    facet_wrap(~topic, nrow = 2) 
   
 
 # labeller = labeller(practice = practice_labels

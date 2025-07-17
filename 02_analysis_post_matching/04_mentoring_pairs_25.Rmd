@@ -103,6 +103,8 @@ df_tee$id <- as.factor(df_tee$id)
   # still need to be paired. I will not run this later for the final report.
   # The second number is the pair number.
 
+# removing the one mentee who withdrew (mentee_30) and one mentor who withdrew (mentor_13)
+
 df_tor <- df_tor %>% 
   mutate(pair = case_when(id %in% "mentor_25" ~ "01",
                           id %in% "mentor_15" ~ "02",
@@ -127,21 +129,20 @@ df_tor <- df_tor %>%
                           id %in% "mentor_19" ~ "21",
                           id %in% "mentor_3" ~ "22",
                           id %in% "mentor_32" ~ "23",
-                          id %in% "mentor_13" ~ "24",
+                          id %in% "mentor_26" ~ "24",
                           id %in% "mentor_37" ~ "25",
                           id %in% "mentor_36" ~ "26",
                           id %in% "mentor_48" ~ "27",
                           id %in% "mentor_4" ~ "28",
-                          id %in% "mentor_26" ~ "29",
-                          id %in% "mentor_7" ~ "30",
-                          id %in% "mentor_49" ~ "31",
-                          id %in% "mentor_33" ~ "32",
-                          id %in% "mentor_22" ~ "33",
-                          id %in% "mentor_40" ~ "34",
-                          id %in% "mentor_17" ~ "35",
-                          id %in% "mentor_6" ~ "36",
-                          id %in% "mentor_34" ~ "37",
-                          id %in% "mentor_5" ~ "38",
+                          id %in% "mentor_7" ~ "29",
+                          id %in% "mentor_49" ~ "30",
+                          id %in% "mentor_33" ~ "31",
+                          id %in% "mentor_22" ~ "32",
+                          id %in% "mentor_40" ~ "33",
+                          id %in% "mentor_17" ~ "34",
+                          id %in% "mentor_6" ~ "35",
+                          id %in% "mentor_34" ~ "36",
+                          id %in% "mentor_5" ~ "37",
                           TRUE ~ as.character("not paired"))) %>% 
            mutate(pair = as.factor(pair)) 
         
@@ -207,21 +208,20 @@ df_tee <- df_tee %>%
                           id %in% "mentee_25" ~ "21",
                           id %in% "mentee_6" ~ "22",
                           id %in% "mentee_43" ~ "23",
-                          id %in% "mentee_39" ~ "24",
-                          id %in% "mentee_8" ~ "25",
-                          id %in% "mentee_48" ~ "26",
-                          id %in% "mentee_36" ~ "27",
-                          id %in% "mentee_15" ~ "28",
-                          id %in% "mentee_30" ~ "29",
-                          id %in% "mentee_26" ~ "30",
-                          id %in% "mentee_34" ~ "31",
-                          id %in% "mentee_14" ~ "32",
-                          id %in% "mentee_28" ~ "33",
-                          id %in% "mentee_37" ~ "34",
-                          id %in% "mentee_53" ~ "35",
-                          id %in% "mentee_46" ~ "36",
-                          id %in% "mentee_31" ~ "37",
-                          id %in% "mentee_1" ~ "38",
+                          id %in% "mentee_8" ~ "24",
+                          id %in% "mentee_48" ~ "25",
+                          id %in% "mentee_36" ~ "26",
+                          id %in% "mentee_15" ~ "27",
+                          id %in% "mentee_39" ~ "28",
+                          id %in% "mentee_26" ~ "29",
+                          id %in% "mentee_34" ~ "30",
+                          id %in% "mentee_14" ~ "31",
+                          id %in% "mentee_28" ~ "32",
+                          id %in% "mentee_37" ~ "33",
+                          id %in% "mentee_53" ~ "34",
+                          id %in% "mentee_46" ~ "35",
+                          id %in% "mentee_31" ~ "36",
+                          id %in% "mentee_1" ~ "37",
                           TRUE ~ as.character("not paired"))) %>% 
            mutate(pair = as.factor(pair)) %>% 
   relocate(pair, .after=id)
@@ -321,6 +321,10 @@ match as backup in case any of our other mentors are unable to participate in th
 program. We will also prioritise their involvement in the program next year so they
 have a chance to develop and implement their mentoring skills and expand their 
 network at Flinders. 
+
+We also had one mentor and one mentee withdraw for personal reasons soon after the program
+began. We were able to pair the remaining mentee and mentor from each pair with
+each other. As such, we had 37 pairs in the program since March 2025. 
 
 The percentage column represents the percentage of mentors from each 
 College and the percentage of mentees from each College who are participating
@@ -426,6 +430,49 @@ knitr::kable (
   longtable = T #break the table over multiple pages
   ) %>%
   pack_rows (index = table(col_tee_details$college)) %>%
+  kable_styling(full_width = F, 
+                latex_options = c("repeat_header", "hold_position", "striped")) 
+# use different styling to repeat the header
+
+```
+
+
+
+
+```{r mentee_details_expansive, include=FALSE}
+
+# we used this detail for the mentee roundtable for HDR supervision. This isn't
+  # part of the regular report. 
+
+# This is the text for the intro to the table.
+
+# \newpage
+# 
+# Table \ref{tab:mentor_details} shows the details of the mentors who were selected 
+# to participate in the program. 
+
+
+# identify the mentees in each college
+
+col_tee_details_more <- df_tee %>% 
+  select (c(college, name, level_recode, position, employment_length)) %>% 
+  arrange(college) %>% 
+  ungroup
+
+
+knitr::kable (
+  col_tee_details_more[, c(2:5)], # select only the names and levels columns
+  booktabs = T,
+  linesep = "",
+  col.names = c("Names", "Levels", "Position", "Employment"),
+  caption =
+    sprintf("Breakdown of Mentees by College (n = %d)",
+            total_tee),
+  align = 'lcll', 
+  longtable = T #break the table over multiple pages
+  ) %>%
+  pack_rows (index = table(col_tee_details_more$college)) %>%
+    column_spec(3, width = "3in") %>% 
   kable_styling(full_width = F, 
                 latex_options = c("repeat_header", "hold_position", "striped")) 
 # use different styling to repeat the header
