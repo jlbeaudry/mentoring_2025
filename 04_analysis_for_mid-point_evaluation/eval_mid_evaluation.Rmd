@@ -1,0 +1,1209 @@
+---
+title: "Researcher Mentoring Program for Early-Career Researchers (2025)"
+subtitle: "Mid-point Evaluation"
+#author: "Jen Beaudry"
+#date: "August 2025"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+header-includes:
+  - \usepackage{titling}
+    \setlength{\droptitle}{-2cm} # removes some of the white space above title
+  - \pretitle{\begin{center}
+    \includegraphics[width=1.5in, height=1.5in]{flinders-university-horizontal-master.png}\LARGE\\} # adds logo
+  - \posttitle{\end{center}}
+  - \usepackage{fancyhdr}
+  - \usepackage[singlelinecheck=false]{caption} # left align caption
+  - \fancypagestyle{plain}{\pagestyle{fancy}} # sets the footer on page 1
+  - \pagestyle{fancy} # sets the footer on page 2 and beyond
+  - \fancyhf{} # clears existing header & footer
+  - \renewcommand{\headrulewidth}{0pt} # removes the line from the header
+  - \fancyfoot[L]{Jen Beaudry} # my name in footer
+  - \fancyfoot[R]{\thepage} # page number in foooter
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = FALSE,
+                      include = TRUE)
+options(tinytex.verbose = TRUE)
+
+```
+
+
+
+```{r library, include=FALSE}
+
+# devtools::install_github("adletaw/captioner")
+
+library(here)
+library(kableExtra)
+library(tidyverse)
+library(captioner)
+library(datapasta)
+
+```
+
+
+```{r preprocess the data, include = FALSE}
+
+# this will run the preprocessing script so everything is updated and fresh
+
+source(here::here("04_analysis_for_mid-point_evaluation", "eval_mid_preprocessing.R"))
+
+```
+
+```{r functions, include=FALSE}
+
+# use this for all tables...
+
+styler_pdf <- function(dat) 
+  dat %>%
+     kableExtra::kable_styling(full_width = F, 
+                latex_options = c("striped", "HOLD_position", "repeat_header"))
+
+# this will load the functions so I can use them within this script
+
+source(here::here("..", "functions", "meta_rename.R"))
+source(here::here("..", "functions", "ratings_summary.R"))
+
+table_nums <- captioner(prefix = "Table")
+fig_nums <- captioner(prefix = "Figure")
+
+```
+
+```{r notes for my sanity, include = FALSE}
+
+# if I get a misalign error when I knit it, check:
+  # that my titles for the chunks that have tables in them use underscores 
+  # that people didn't insert line breaks in the qualtrics data (argh! this took forever to find)
+  # also look at data to see if anyone used "\" or "/" instead of "N/A"
+
+# if the tables aren't showing in preview, but are coming out as latex, then 
+  # change the format from 'latex' to 'markdown'. You can change it again to 
+  # knit it, but it doesn't seem that you have to do that. 
+
+# some cells include carriage returns and new lines, which breaks the formatting in the kables
+  # I have manually removed them because I can't yet figure out how to do that in preprocessing
+
+
+```
+
+
+```{r captions, include = FALSE}
+
+# I'm using this to allow me to reference the tables. 
+# I'm using kable for the captions within the tables because it allows me to break 
+  # the table over the pages
+
+# [breadcrumb: update once all tables and figures are done]
+
+
+table_nums(name = "expect", 
+           caption = "Participants' statements about how the program has aligned with their expectations.")
+
+table_nums(name = "meeting_experiences", 
+           caption = "'How are your one-on-one sessions with your partner going?'")
+
+table_nums(name = "best_parts",
+             caption = "'What were the best parts of the program, so far?'")
+
+table_nums(name = "improvement",
+             caption = "'Any suggestions for improvement?'")
+
+table_nums(name = "anything_else",
+             caption = "'Anything else you want us to know?'")
+
+fig_nums(name = "meetings", 
+           caption = "Participants' statements about how many times they have met with their partner.")
+
+fig_nums(name = "comm_ratings_summary", 
+         caption = "Combined ratings from mentees and mentors about common aspects of the program.")
+
+fig_nums(name = "tor_ratings_summary", 
+         caption = "Mentors' ratings about various aspects of the program.")
+
+fig_nums(name = "tee_ratings_summary", 
+         caption = "Mentees' ratings about various aspects of the program.")
+
+
+```
+
+```{r load data, include=FALSE, eval=FALSE}
+
+# all of this will be loaded from the preprocessing scrip. No need to reload it. 
+
+# combined mentee and mentor data 
+
+df <-
+  read_csv(here::here("00_data", "processed_data", "eval_mid_combined_preprocessed.csv"),
+           lazy = FALSE)
+
+# load metadata
+meta_tor <-
+  read_csv(here::here("00_data", "raw_data", "metadata_eval_mid_mentor.csv"), lazy = FALSE)
+
+# load metadata 
+meta_tee <-
+  read_csv(here::here("00_data", "raw_data", "metadata_eval_mid_mentee.csv"), lazy = FALSE) 
+
+```
+
+
+```{r code factors, include=FALSE}
+
+# turn role into a factor and relevel things so mentor is first. Make the values sentence case
+
+df$role_lowercase <- factor(df$role, levels = c("mentor", "mentee"))
+df <- df %>% mutate (role = str_to_sentence(role))
+
+# turn all ratings variables into factors, regardless of whether they are from the mentee or mentor files
+# use datapasta to do this!
+# the code below works
+
+cols <- c(
+  "info_session_program",
+  "info_session_ideas",
+  "orientation_session_program",
+  "orientation_session_ideas",
+  "launch_connect",
+  "handbook_resource",
+  "agreement_conversation",
+  "agreement_expectations",
+  "lunch",
+  "expand_network",
+  "roundtable_first_informative",
+  "roundtable_first_valuable",
+  "advice_current",
+  "advice_future",
+  "enthusiastic",
+  "organised",
+  "contact"
+)
+
+# turn the cols columns into factors
+df <- df %>% 
+  mutate(across (all_of(cols), ~factor(., 
+                                       levels = c("N/A", 
+                                           "Strongly disagree",
+                                           "Somewhat disagree",
+                                           "Neither agree nor disagree",
+                                           "Somewhat agree",
+                                           "Strongly agree"))))
+
+```
+
+```{r total n, include=FALSE}
+
+# The total n in the program has to be manually inputted to be used in the next section.
+# Pulling it into a code chunk so I know it has to be changed in the future
+
+n_mentee <- 37
+n_mentor <- 37
+n_pairs <- 37
+
+```
+# Overview
+
+The Researcher Mentoring Program for Early-Career Researchers for 2025 supported
+`r n_pairs` mentee--mentor pairs. The mentors and mentees were 
+invited to complete this evaluation, which was open from Monday 16 June to 
+Monday 28 July 2025.
+
+Of those invited to complete the evaluation, `r nrow(df %>% filter(role == "Mentee"))` 
+mentees (`r round((nrow(df %>% filter(role == "Mentee")) / n_mentee) *100, 0)`%) and
+`r nrow(df %>% filter(role == "Mentor"))` mentors 
+(`r round((nrow(df %>% filter(role == "Mentor")) / n_mentor) *100, 0)`%) 
+completed the survey. 
+
+```{r expectations data, include = TRUE}
+
+expect_rate_mentee <- df %>% 
+  filter (role == "Mentee") %>% 
+    dplyr::group_by (role, met_expectations) %>% 
+  count()
+
+expect_rate_mentor <- df %>% 
+  filter (role == "Mentor") %>% 
+    dplyr::group_by (role, met_expectations) %>% 
+  count()
+
+# now that I've figured out pack_rows, I don't need to split it up by role
+
+expect <- df %>%
+  select (id, role, expectations_comment) %>%
+  filter (!is.na(expectations_comment))
+
+# make it a factor
+expect$role <- factor(expect$role, levels = c("Mentor", "Mentee"))
+
+  
+
+# I need to split the comments up by role (because the pack_rows isn't working) & 
+  # also give new numbers according to their role
+
+# n_tee_expect <- df %>%
+#   filter(role %in% "Mentee") %>%
+#   select (Participant, `Mentee Number`, role, expectations_comment) %>%
+#   filter (!is.na(expectations_comment))
+# 
+# tor_expect <- df %>%
+#   mutate(Participant = 1:n()) %>%
+#   filter(role %in% "mentor") %>%
+#   mutate(`Mentor Number` = 1:n()) %>% 
+#   select (Participant, `Mentor Number`, role, expectations_comment) %>%
+#   filter (!is.na(expectations_comment))
+
+
+```
+
+## Expectations
+
+Most respondents indicated that the program met or exceeded their expectations. 
+
+Specifically, of the `r expect_rate_mentor[[3]] %>% sum` mentors who responded,
+`r expect_rate_mentor[[1,3]]` (`r round((expect_rate_mentor[[1,3]]/(expect_rate_mentor[[3]] %>% sum))*100,0)`%)
+indicated that it exceeded their expectations, 
+`r expect_rate_mentor[[2,3]]` (`r round((expect_rate_mentor[[2,3]]/(expect_rate_mentor[[3]] %>% sum))*100,0)`%)
+indicated that it met their expectations and
+`r expect_rate_mentor[[3,3]]` (`r round((expect_rate_mentor[[3,3]]/(expect_rate_mentor[[3]] %>% sum))*100,0)`%)
+indicated that it partly met their expectations.
+No mentors indicated that it did not meet their expectations.
+Of the `r expect_rate_mentor[[3]] %>% sum` mentors who responded to the survey, 
+`r sum(expect$role=='Mentor')` mentors provided explanations of how the program aligned with their expectations
+(see `r table_nums(name = "expect", display = "cite")`). 
+
+More mentees than mentors indicated that the program has so far exceeded their expectations. 
+Of the `r expect_rate_mentee[[3]] %>% sum` mentees who responded,
+`r expect_rate_mentee[[1,3]]` (`r round((expect_rate_mentee[[1,3]]/(expect_rate_mentee[[3]] %>% sum))*100,0)`%)
+indicated that it exceeded their expectations,
+`r expect_rate_mentee[[2,3]]` (`r round((expect_rate_mentee[[2,3]]/(expect_rate_mentee[[3]] %>% sum))*100,0)`%)
+indicated that it met their expectations and
+`r expect_rate_mentee[[3,3]]` (`r round((expect_rate_mentee[[3,3]]/(expect_rate_mentee[[3]] %>% sum))*100,0)`%)
+indicated that it partly met their expectations. Of the `r expect_rate_mentee[[3]] %>% sum` 
+mentors who responded to the survey, `r sum(expect$role=='Mentee')` mentees provided 
+explanations of how the program aligned with their expectations
+(see `r table_nums(name = "expect", display = "cite")`). 
+
+
+```{r expectations_all_table}
+
+knitr::kable(
+  expect [, c(1,3)],
+  linesep = "\\addlinespace",
+  booktabs = T,
+  escape = TRUE,
+  format = "latex",
+  longtable = T,
+   align = "ll",
+caption = "Statements about how the program has aligned with their expectations",
+  col.names = c("Respondent", "Response")
+  ) %>% 
+    pack_rows (index = table(expect$role)) %>% 
+    kableExtra::column_spec (column = 1, width = "2cm") %>% 
+   kableExtra::column_spec (column = 2, width = "14cm") %>% 
+styler_pdf()
+
+# if pack_rows is NOT working (creates a 'misplaced \no align' error), it means
+  # that my code chunk label needs underscores between the words rather than separate words.
+
+```
+
+## How often are you meeting?
+
+```{r summarise responses about meeting}
+
+
+# make the meeting options a factor
+df$meetings <- factor(df$meetings,
+                      levels = c("We haven't yet met", 
+                      "Once or twice", 
+                      "Between three to five times", 
+                      "Between six to eight times",
+                      "More than nine times")
+                      )
+
+# summarise the number of people who selected each option
+meetings_summary <- df %>% 
+  select(meetings, role) %>% 
+  count(role, meetings, .drop = FALSE)
+
+
+```
+
+
+Both mentees and mentors completed this question; we see the same patterns across
+both cohorts. Most mentee-mentor partners have met between three to five times, 
+which is right on track because the survey was 
+completed approximately three months into the program. Some partners are meeting 
+more regularly, with several (n = `r (meetings_summary %>% filter(meetings == "Between six to eight times") %>% reframe(sum(n)))`)
+having met between six to eight times. A few partners have met less than we would
+like at this point, with `r (meetings_summary %>% filter(meetings == "Between six to eight times") %>% reframe(sum(n)))`
+having met only once or twice. 
+
+`r fig_nums(name = "meetings", display = "cite")` shows how frequently 
+mentees and mentors reported meeting thus far. Given that this is an anonymous 
+survey, we do not know if these data are linked across the two cohorts. 
+
+```{r plot the responses about meeting}
+
+# plot it
+ggplot(meetings_summary, aes(y = n, x = meetings)) +
+  geom_bar(stat="identity", fill = "lightblue", colour = "black") +
+  facet_wrap(vars(role)) +
+  labs (x = element_blank(),
+        y = "Frequency") +
+  theme_classic() +
+theme(legend.title = element_blank()) +
+    coord_flip() +
+#  labs (title = "Common Questions") +
+scale_x_discrete(
+   labels = c(
+    "We haven't yet met", 
+      "Once or twice", 
+      "Between three to five times", 
+      "Between six to eight times",
+      "More than nine times"
+  )
+ ) 
+
+# the labels are always in opposite directions from the data set!
+
+```
+
+
+## Questions common to mentees and mentors
+
+In the scaled-response questions, we asked eight questions that were common to the 
+mentees and mentors. We use the term 'their partner' in the text below, but the 
+actual question for the mentee referred to their mentor and for the mentor it referred
+to their mentee. 
+
+
+```{r creating tibbles for all rating responses for common questions, include = FALSE}
+
+# Analyse the questions that are common to both mentees & mentors
+
+# get total n to calculate percentages
+
+total_n <- length(df$id)
+
+# SELECT THE RATING COLUMNS & SAVE AS A TIBBLE I WANT TO SUMMARISE & PLOT USING THE RATING_SUMMARY FUNCTION
+
+comm_rating <- df %>% 
+  select( c("launch_connect",
+  "handbook_resource",
+  "agreement_conversation",
+  "agreement_expectations",
+  "expand_network",
+  "enthusiastic",
+  "organised",
+  "contact"
+))
+
+# UPDATE THE COLUMNS PARAMETER WITH THE STRINGS FROM ABOVE
+
+columns <- c("launch_connect",
+  "handbook_resource",
+  "agreement_conversation",
+  "agreement_expectations",
+  "expand_network",
+  "enthusiastic",
+  "organised",
+  "contact"
+)
+
+# RUN THE FUNCTION & APPLY TO ALL COLUMNS IN OUR DF
+
+comm_ratings_summary <- purrr::map_dfr(columns, .f = function(column) {
+	ratings_summary(comm_rating, column)
+})
+
+# remove the NA responses 
+comm_ratings_summary <- na.omit(comm_ratings_summary)
+
+```
+
+```{r creating agreement tibbles for common questions, include = FALSE}
+
+# calculate how many responded with the agree ratings. I use these in the 
+  # text summaries later
+
+# [breadcrumb: can I use apply for this too?? Who knows? I think I need to transpose it, 
+  # so that's another problem for another day]
+
+# I am omitting the "N/A" responses so they aren't calculated in the agreement rates. 
+  # The "N/A" responses will still show in the figure. 
+
+agree <- c("Strongly agree", "Somewhat agree")
+
+launch_agree <- comm_ratings_summary %>%
+  filter (rating_item == "launch_connect") %>% 
+  filter (rating %in% agree)
+
+launch <- comm_ratings_summary %>%
+  filter (rating_item == "launch_connect") %>% 
+  filter (rating != "N/A")
+
+
+handbook_agree <- comm_ratings_summary %>%
+  filter (rating_item == "handbook_resource") %>% 
+  filter (rating %in% agree)
+
+handbook <- comm_ratings_summary %>%
+  filter (rating_item == "handbook_resource") %>% 
+  filter (rating != "N/A")
+
+
+conversation_agree <- comm_ratings_summary %>%
+  filter (rating_item == "agreement_conversation") %>% 
+  filter (rating %in% agree)
+
+conversation <- comm_ratings_summary %>%
+  filter (rating_item == "agreement_conversation") %>% 
+  filter (rating != "N/A")
+
+
+expectations_agree <- comm_ratings_summary %>%
+  filter (rating_item == "agreement_expectations") %>% 
+  filter (rating %in% agree)
+
+expectations <- comm_ratings_summary %>%
+  filter (rating_item == "agreement_expectations") %>% 
+  filter (rating != "N/A")
+
+
+enthusiastic_agree <- comm_ratings_summary %>%
+  filter (rating_item == "enthusiastic") %>% 
+  filter (rating %in% agree)
+
+enthusiastic <- comm_ratings_summary %>%
+  filter (rating_item == "enthusiastic") %>% 
+  filter (rating != "N/A")
+
+
+network_agree <- comm_ratings_summary %>%
+  filter (rating_item == "expand_network") %>% 
+  filter (rating %in% agree)
+
+network <- comm_ratings_summary %>%
+  filter (rating_item == "expand_network") %>% 
+  filter (rating != "N/A")
+
+
+organised_agree <- comm_ratings_summary %>%
+  filter (rating_item == "organised") %>% 
+  filter (rating %in% agree)
+
+organised <- comm_ratings_summary %>%
+  filter (rating_item == "organised") %>% 
+  filter (rating != "N/A")
+
+
+contact_agree <- comm_ratings_summary %>%
+  filter (rating_item == "contact") %>% 
+  filter (rating %in% agree) 
+
+contact <- comm_ratings_summary %>%
+  filter (rating_item == "contact") %>% 
+  filter (rating != "N/A")
+
+### WRITING THE CODE FOR THE AGREEMENT VALUES
+
+# UPDATE THE COLUMNS PARAMETER WITH THE STRINGS FROM ABOVE
+
+items <- c("launch_connect",
+  "handbook_resource",
+  "agreement_conversation",
+  "agreement_expectations",
+  "expand_network",
+  "enthusiastic",
+  "organised",
+  "contact"
+)
+
+agree_summary <- function(dat, item) {
+  dat <- dat %>%
+   filter (rating_item == item) %>% 
+   filter (rating %in% c("Strongly agree", "Somewhat agree"))
+  list(n = sum(dat$n), item = item)
+}
+
+
+comm_ratings_summary %>% 
+  filter(rating %in% c("Strongly agree", "Somewhat agree"))
+
+agree_summary(comm_ratings_summary, items)
+
+# THIS WORKS AND SPITS OUT A TIBBLE. 
+purrr::map_dfr(items, function(x) agree_summary(comm_ratings_summary, x))
+
+# [breadcrumb: will need to rework the code in the text for how to calculate agreement rates]
+
+
+```
+
+Of these common questions, the numbers in parentheses indicate the percentage
+of those who provided a rating (i.e., did not indicate "N/A") that either 
+somewhat agreed or strongly agreed to each item:
+
+  * The program handbook is a valuable resource 
+  (`r round(sum(handbook_agree$n)/sum(handbook$n)*100,0)`%).
+  * The mentoring agreement helped get the conversation started with their partner 
+    (`r round(sum(conversation_agree$n)/sum(conversation$n)*100,0)`%).
+  * The mentoring agreement helped them clarify boundaries and/or expectations with 
+  their partner
+    (`r round(sum(expectations_agree$n)/sum(expectations$n)*100,0)`%).
+  * The program launch was useful to connect them with their partner
+    (`r round(sum(launch_agree$n)/sum(launch$n)*100,0)`%).
+  * This program is expanding their networks at Flinders University 
+    (`r round(sum(network_agree$n)/sum(network$n)*100,0)`%).
+  * They feel enthusiastic after meeting with their partner
+    (`r round(sum(enthusiastic_agree$n)/sum(enthusiastic$n)*100,0)`%).
+  * The program is well organised 
+    (`r round(sum(organised_agree$n)/sum(organised$n)*100,0)`%).
+  * They know who to contact if they have any issues with their partner
+    (`r round(sum(contact_agree$n)/sum(contact$n)*100,0)`%).
+
+
+`r fig_nums(name = "comm_ratings_summary", display = "cite")` shows a breakdown 
+of ratings for items that both mentors and mentees completed.
+
+
+```{r plot the ratings for common questions}
+
+# Relevel the responses [changes order in ggplot, but not the dataframe]
+# plot it first to see if I need to do this
+
+# tor_rating$rating <- factor (rating$rating, levels = c("Strongly agree",
+#                                            "Somewhat agree",
+#                                            "Neither agree nor disagree",
+#                                            "Somewhat disagree",
+#                                            "Strongly disagree"))
+
+# put them in reverse order of how I want them to appear
+comm_ratings_summary$rating_item <-
+  factor (
+    comm_ratings_summary$rating_item,
+    levels = c(
+      "contact", 
+      "organised",
+      "enthusiastic",
+      "expand_network",
+      "launch_connect",
+      "agreement_expectations",
+      "agreement_conversation",
+      "handbook_resource"
+    )
+  )
+
+# [breadcrumb] I can delete this later, but this is useful to create the plot_labs
+
+# labs <- meta_tee %>% 
+#   filter(scale == "common_ratings") %>% 
+#   pull(item_text_short) %>% 
+# datapasta::vector_paste_vertical()
+
+
+# plot it
+ggplot(comm_ratings_summary, aes(fill = rating, y = percentage, x = rating_item)) +
+  geom_bar(position="fill", stat="identity", colour = "black") +
+  scale_fill_brewer(
+    palette = "Blues",
+    na.value = "grey50",
+    direction = 1,
+    labels = c(
+      "N/A",
+      "Strongly disagree",
+      "Somewhat disagree",
+      "Neither agree nor disagree",
+      "Somewhat agree",
+      "Strongly agree"
+    )
+  ) +
+  labs (x = element_blank(),
+        y = "Percentage") +
+  theme_classic() +
+theme(legend.title = element_blank()) +
+    coord_flip() +
+#  labs (title = "Common Questions") +
+scale_x_discrete(
+   labels = c(
+    "I know who to contact if I\nhave any issues with my partner",
+    "The program is well organised",
+    "I feel enthusiastic after\nmeeting with my partner",
+    "This program is helping me to \nexpand my University networks",
+    "The program launch was useful\nto connect me with my partner",
+    "The mentoring agreement helped\nme clarify expectations",
+    "The mentoring agreement helped\nme get the conversation started",
+   "The program handbook is a \nvaluable resource"
+  )
+ ) +
+  scale_y_continuous(labels = c("0", "25", "50", "75", "100"))
+
+# the labels are always in opposite directions from the data set!
+
+```
+
+\newpage
+## Questions for mentors
+
+In addition to the questions that were common to the mentees and mentors, we
+asked questions that were unique to each group. We asked the mentors four unique questions. 
+
+```{r creating tibbles for all rating responses for mentors, include=FALSE, eval=TRUE}
+
+# Mentor-only questions
+  # First, filter for mentor only
+
+df_tor <- df %>% 
+  filter(role == "Mentor")
+
+# get total n of mentors to calculate percentages
+total_n <- length(df_tor$id)
+
+# SELECT THE RATING COLUMNS & SAVE AS A TIBBLE I WANT TO SUMMARISE & PLOT USING THE RATINGS_SUMMARY FUNCTION
+
+tor_ratings <- df_tor %>% 
+  select( c("orientation_session_program", 
+            "orientation_session_ideas",
+            "lunch",
+            "advice_current",
+            "advice_future"
+))
+
+# UPDATE THE COLUMNS PARAMETER WITH THE STRINGS FROM ABOVE
+
+columns <- c("orientation_session_program", 
+            "orientation_session_ideas",
+            "lunch",
+            "advice_current",
+            "advice_future"
+)
+
+# RUN THE FUNCTION & APPLY TO ALL COLUMNS IN OUR DF
+
+tor_ratings_summary <- purrr::map_dfr(columns, .f = function(column) {
+	ratings_summary(tor_ratings, column)
+})
+
+# remove the NA responses
+tor_ratings_summary <- na.omit(tor_ratings_summary)
+
+
+```
+
+
+```{r create agreement tibbles for mentor-only questions}
+
+# calculate how many responded with the agree ratings. I use these in the 
+  # text summaries later
+
+agree <- c("Strongly agree", "Somewhat agree")
+
+orientation_session_program_agree <- tor_ratings_summary %>%
+  filter (rating_item == "orientation_session_program") %>% 
+  filter (rating %in% agree)
+
+orientation_session_program <- tor_ratings_summary %>%
+  filter (rating_item == "orientation_session_program") %>% 
+  filter (rating != "N/A")
+
+
+lunch_agree <- tor_ratings_summary %>%
+  filter (rating_item == "lunch") %>% 
+  filter (rating %in% agree)
+
+lunch <- tor_ratings_summary %>%
+  filter (rating_item == "lunch") %>% 
+  filter (rating != "N/A")
+
+
+orientation_session_ideas_agree <- tor_ratings_summary %>%
+  filter (rating_item == "orientation_session_ideas") %>% 
+  filter (rating %in% agree)
+
+orientation_session_ideas <- tor_ratings_summary %>%
+  filter (rating_item == "orientation_session_ideas") %>% 
+  filter (rating != "N/A")
+
+
+advice_current_agree <- tor_ratings_summary %>%
+  filter (rating_item == "advice_current") %>% 
+  filter (rating %in% agree)
+
+advice_current <- tor_ratings_summary %>%
+  filter (rating_item == "advice_current") %>% 
+  filter (rating != "N/A")
+
+
+advice_future_agree <- tor_ratings_summary %>%
+  filter (rating_item == "advice_future") %>% 
+  filter (rating %in% agree)
+
+advice_future <- tor_ratings_summary %>%
+  filter (rating_item == "advice_future") %>% 
+  filter (rating != "N/A")
+
+```
+
+
+Of these mentor-only questions, the numbers in parentheses indicate the percentage
+of those who provided a rating (i.e., did not indicate "N/A") that either 
+somewhat agreed or strongly agreed to each item:
+
+  * They are providing advice and/or guidance that will help their mentee with their
+  current aspirations 
+  (`r round(sum(advice_current_agree$n)/sum(advice_current$n)*100,0)`%).
+  * They are providing advice and/or guidance that will help their mentee with 
+  their future research career 
+  (`r round(sum(advice_future_agree$n)/sum(advice_future$n)*100,0)`%).
+  * The mentor networking lunch gave me an opportunity to connect with other senior researchers
+  (`r round(sum(lunch_agree$n)/sum(lunch$n)*100,0)`%).
+  * The mentor orientation session helped them to understand how this program works
+  (`r round(sum(orientation_session_program_agree$n)/sum(orientation_session_program$n)*100,0)`%).
+  * The mentor orientation session provided them with ideas about how they can 
+  support their mentee 
+  (`r round(sum(orientation_session_ideas_agree$n)/sum(orientation_session_ideas$n)*100,0)`%).
+
+`r fig_nums(name = "tor_ratings_summary", display = "cite")` shows a breakdown 
+of ratings to these questions that were specific to mentors.
+
+```{r plot the ratings for mentors, eval=TRUE}
+
+# put them in reverse order of how I want them to appear
+tor_ratings_summary$rating_item <-
+  factor (
+    tor_ratings_summary$rating_item,
+    levels = c(
+      "orientation_session_ideas",
+      "orientation_session_program",
+      "lunch",
+      "advice_future",
+      "advice_current"
+      )
+  )
+
+# put the most important items at the bottom!
+
+# [breadcrumb] I can delete this later, but this is useful to create the plot_labs
+
+# labs <- meta_tor %>%
+#   filter(scale == "ratings") %>%
+#   pull(item_text_short) %>%
+# datapasta::vector_paste_vertical()
+
+
+# plot it
+ggplot(tor_ratings_summary, aes(fill = rating, y = percentage, x = rating_item)) +
+  geom_bar(position="fill", stat="identity", colour = "black") +
+  scale_fill_brewer(
+    palette = "Blues",
+    na.value = "grey50",
+    direction = 1,
+    labels = c(
+      "N/A",
+      "Strongly disagree",
+      "Somewhat disagree",
+      "Neither agree nor disagree",
+      "Somewhat agree",
+      "Strongly agree"
+    )
+  ) +
+  labs (x = element_blank(),
+        y = "Percentage") +
+  theme_classic() +
+theme(legend.title = element_blank()) +
+    coord_flip() +
+#  labs (title = "Questions for Mentors") +
+ scale_x_discrete(
+   labels = c(
+     "The mentor orientation session \nprovided me with ideas about \nhow I can support my mentee",
+     "The mentor orientation session \nhelped me to understand how \nthis program works",
+     "The mentor networking lunch \nconnected me with other \nsenior researchers",
+     "I am providing advice and/or \nguidance that will help my mentee \nwith their future research career",
+     "I am providing advice and/or \nguidance that will help my mentee \nwith their current aspirations"
+        )
+ ) +
+  scale_y_continuous(labels = c("0", "25", "50", "75", "100"))
+
+# the labels are always in opposite directions from the data set!
+
+```
+
+\newpage
+## Questions for mentees
+
+We also asked the mentees six unique questions. 
+
+```{r create tibbles for rating responses for mentee-only questions, include = FALSE}
+
+# Analyse the questions that are unique to mentees 
+
+# Mentee-only questions
+
+  # First, filter for mentee only
+
+df_tee <- df %>% 
+  filter(role == "Mentee")
+
+# get total n of mentees to calculate percentages
+  # the function calls this 'total_n' so we have to use that object in the function
+
+total_n <- length(df_tee$id)
+
+# SELECT THE RATING COLUMNS & SAVE AS A TIBBLE I WANT TO SUMMARISE & PLOT USING THE RATINGS_SUMMARY FUNCTION
+
+tee_ratings <- df_tee %>% 
+  select( c("info_session_program", 
+            "info_session_ideas",
+            "roundtable_first_informative", 
+            "roundtable_first_valuable",
+            "advice_current",
+            "advice_future"
+))
+
+# UPDATE THE COLUMNS PARAMETER WITH THE STRINGS FROM ABOVE
+
+columns <- c("info_session_program", 
+            "info_session_ideas",
+            "roundtable_first_informative", 
+            "roundtable_first_valuable",
+            "advice_current",
+            "advice_future"
+)
+
+# RUN THE FUNCTION & APPLY TO ALL COLUMNS IN OUR DF
+
+tee_ratings_summary <- purrr::map_dfr(columns, .f = function(column) {
+	ratings_summary(tee_ratings, column)
+})
+
+# remove the NA responses
+tee_ratings_summary <- na.omit(tee_ratings_summary)
+
+```
+
+
+```{r create agreement tibbles for mentee-only questions}
+
+# calculate how many responded with the agree ratings. I use these in the 
+  # text summaries later
+
+# [breadcrumb: can I use apply for this too?? Who knows? I think I need to transpose it, 
+  # so that's another problem for another day]
+
+agree <- c("Strongly agree", "Somewhat agree")
+
+
+info_session_program_agree <- tee_ratings_summary %>%
+  filter (rating_item == "info_session_program") %>% 
+  filter (rating %in% agree)
+
+info_session_program <- tee_ratings_summary %>% 
+  filter (rating_item == "info_session_program") %>% 
+  filter (rating != "N/A") # we need this so we can calculate the percentage who agreeed
+
+  
+info_session_ideas_agree <- tee_ratings_summary %>%
+  filter (rating_item == "info_session_ideas") %>% 
+  filter (rating %in% agree)
+
+info_session_ideas <- tee_ratings_summary %>%
+  filter (rating_item == "info_session_ideas") %>% 
+  filter (rating != "N/A") 
+
+
+roundtable_first_informative_agree <- tee_ratings_summary %>%
+  filter (rating_item == "roundtable_first_informative") %>% 
+  filter (rating %in% agree)
+
+roundtable_first_informative <- tee_ratings_summary %>%
+  filter (rating_item == "roundtable_first_informative") %>% 
+  filter (rating != "N/A") 
+
+
+roundtable_first_valuable_agree <- tee_ratings_summary %>%
+  filter (rating_item == "roundtable_first_valuable") %>% 
+  filter (rating %in% agree)
+
+roundtable_first_valuable <- tee_ratings_summary %>%
+  filter (rating_item == "roundtable_first_valuable") %>% 
+  filter (rating != "N/A") 
+
+
+advice_current_agree <- tee_ratings_summary %>%
+  filter (rating_item == "advice_current") %>% 
+  filter (rating %in% agree)
+
+advice_current <- tee_ratings_summary %>% 
+  filter (rating_item == "advice_current") %>% 
+  filter (rating != "N/A") 
+
+
+advice_future_agree <- tee_ratings_summary %>%
+  filter (rating_item == "advice_future") %>% 
+  filter (rating %in% agree)
+
+advice_future <- tee_ratings_summary %>%
+  filter (rating_item == "advice_future") %>% 
+  filter (rating != "N/A")
+
+```
+
+
+Of the mentee-only questions, the numbers in parentheses indicate the percentage
+of those who provided a rating (i.e., did not indicate "N/A") that either somewhat 
+agreed or strongly agreed to each item:
+
+  * Their mentor is providing advice and/or guidance that will help them with their
+  current aspirations (`r round(sum(advice_current_agree$n)/sum(advice_current$n)*100,0)`%).
+  * Their mentor is providing advice and/or guidance that will help them with 
+  their future research career (`r round(sum(advice_future_agree$n)/sum(advice_future$n)*100,0)`%).
+  * The first Mentee Roundtable was informative 
+  (`r round(sum(roundtable_first_informative_agree$n)/sum(roundtable_first_informative$n)*100,0)`%).
+  * The first Mentee Roundtable was valuable 
+ (`r round(sum(roundtable_first_valuable_agree$n)/sum(roundtable_first_valuable$n)*100,0)`%).
+  * The mentee information session helped them to understand how the program works
+  (`r round(sum(info_session_program_agree$n)/sum(info_session_program$n)*100,0)`%).
+  * The mentee information session provided them with ideas about how they can 
+  get the most out of this program 
+  (`r round(sum(info_session_ideas_agree$n)/sum(info_session_ideas$n)*100,0)`%).
+
+`r fig_nums(name = "tee_ratings_summary", display = "cite")` shows a breakdown 
+of ratings to these questions that were specific to mentees.
+
+```{r plot the ratings for mentees}
+
+# put them in reverse order of how I want them to appear
+tee_ratings_summary$rating_item <-
+  factor (
+    tee_ratings_summary$rating_item,
+    levels = c(
+      "info_session_ideas",
+      "info_session_program",
+      "roundtable_first_valuable",
+      "roundtable_first_informative",
+      "advice_future",
+      "advice_current"
+      )
+  )
+
+# put the most important items at the bottom!
+
+# [breadcrumb] I can delete this later, but this is useful to create the plot_labs
+
+# labs <- meta_tee %>%
+#   filter(scale == "ratings") %>%
+#   pull(item_text_short) %>%
+# datapasta::vector_paste_vertical()
+
+
+# plot it
+ggplot(tee_ratings_summary, aes(fill = rating, y = percentage, x = rating_item)) +
+  geom_bar(position="fill", stat="identity", colour = "black") +
+  scale_fill_brewer(
+    palette = "Blues",
+    na.value = "grey50",
+    direction = 1,
+    labels = c(
+      "N/A",
+      "Strongly disagree",
+      "Somewhat disagree",
+      "Neither agree nor disagree",
+      "Somewhat agree",
+      "Strongly agree"
+    )
+  ) +
+  labs (x = element_blank(),
+        y = "Percentage") +
+  theme_classic() +
+theme(legend.title = element_blank()) +
+    coord_flip() +
+#  labs (title = "Questions for Mentees") +
+scale_x_discrete(
+  labels = c(
+    "The mentee information session \nprovided me with ideas about how \nI can get the most out of this program",
+    "The mentee information session \nhelped me to understand \nhow this program works",
+    "The first Mentee Roundtable \nwas valuable",
+    "The first Mentee Roundtable \nwas informative",
+    "My mentor is providing advice \nand/or guidance that will \nhelp me with my future research career",
+    "My mentor is providing advice \nand/or guidance that will \nhelp me with my current aspirations"
+  )
+) +
+  scale_y_continuous(labels = c("0", "25", "50", "75", "100"))
+
+# the labels are always in opposite directions from the data set!
+
+```
+
+\newpage
+## Additional comments about their experiences in the program
+
+`r table_nums(name = "meeting_experiences", display = "cite")` shows the responses 
+from mentors and mentees about how their one-on-one sessions with their partner
+are progressing. In this program, the mentors and mentees meet on their own 
+schedules based on their own needs and availability, thus, we have little oversight
+over these encounters. Thus, it's critical to ask them how it's going and to give
+them an opportunity to identify any issues. 
+
+
+```{r meetings_table}
+
+meeting_experiences <- df %>% 
+  select (id, role, meeting_experiences) %>% 
+  filter (!is.na(meeting_experiences))
+
+# make it a factor
+meeting_experiences$role <- factor(meeting_experiences$role, levels = c("Mentor", "Mentee"))
+
+knitr::kable(
+  meeting_experiences [, c(1,3)],
+    booktabs = T, 
+    escape = FALSE,
+  format = "latex",
+  longtable = T,
+  align = "ll",
+  linesep = "\\addlinespace",
+   caption = "Descriptions of their experiences in the one-on-one meetings with their partner",
+  col.names = c("Respondent", "Response")
+  ) %>%
+    pack_rows (index = table(meeting_experiences$role)) %>% 
+  column_spec (column = 2, width = "14cm") %>%
+styler_pdf
+  
+
+
+```
+  
+
+We also asked participants to share the best parts of the program, so far 
+(see `r table_nums(name = "best_parts", display = "cite")`).  
+
+```{r best_parts_table}
+
+best <- df %>% 
+  select (id, role, best_parts) %>% 
+  filter (!is.na(best_parts))
+
+# make it a factor
+best$role <- factor(best$role, levels = c("Mentor", "Mentee"))
+
+knitr::kable(
+  best [, c(1,3)],
+    booktabs = T, 
+    escape = TRUE, 
+    format = "latex",
+  longtable = T,
+  align = "ll",
+  linesep = "\\addlinespace",
+  caption = "Descriptions of the best parts of the mentoring program",
+  col.names = c("Respondent", "Response")
+  ) %>%
+     pack_rows (index = table(best$role)) %>% 
+   kableExtra::column_spec (column = 1, width = "2cm") %>% 
+   kableExtra::column_spec (column = 2, width = "14cm") %>% 
+ styler_pdf
+
+
+```
+
+Participants were given an opportunity to share any suggestions for improvement
+that we could implement either this year or in future years
+(see `r table_nums(name = "improvement", display = "cite")`). 
+
+```{r improvement_table, eval = TRUE}
+
+improve <- df %>% 
+  select (id, role, improvements) %>% 
+  filter (!is.na(improvements))
+
+# make it a factor
+improve$role <- factor(improve$role, levels = c("Mentor", "Mentee"))
+
+knitr::kable(
+  improve [, c(1,3)],
+    booktabs = T, 
+  escape = FALSE,
+    format = "markdown",
+  longtable = T,
+  align = c("ll"),
+  linesep = "\\addlinespace",
+  caption = "Respondents' suggestions for improvement",
+  col.names = c("Respondent", "Response")
+  ) %>%
+  pack_rows (index = table(improve$role)) %>% 
+  column_spec (column = 2, width = "14cm") %>%
+  styler_pdf()
+
+```
+
+
+Finally, participants were asked if there was anything else that they wanted 
+us to know (see `r table_nums(name = "anything_else", display = "cite")`).
+
+```{r anything_else_table, eval = TRUE}
+
+anything_else <- df %>% 
+  select (id, role, anything_else) %>% 
+  filter (!is.na(anything_else))
+
+
+# make it a factor
+anything_else$role <- factor(anything_else$role, levels = c("Mentor", "Mentee"))
+
+knitr::kable(
+  anything_else[, c(1,3)],
+    booktabs = T, 
+  align = "ll",
+    escape = FALSE,
+    format = "latex",
+    longtable = T,
+  linesep = "\\addlinespace",
+  caption = "Final thoughts from respondents",
+  col.names = c("Respondent", "Response")
+  ) %>%
+  pack_rows (index = table(anything_else$role)) %>% 
+  column_spec (column = 2, width = "14cm") %>%
+  styler_pdf()
+
+
+```
+
+
+
+```{r followup_table, eval = FALSE}
+
+# do not include it in the report, but make sure we run this to check on the situation
+
+followup <- df %>% 
+  select (id, role, follow_up) %>% 
+  filter (!is.na(follow_up))
+
+
+# make it a factor
+followup$role <- factor(followup$role, levels = c("Mentor", "Mentee"))
+
+knitr::kable(
+  followup[, c(1,3)],
+    booktabs = T, 
+  align = "ll",
+    escape = FALSE,
+    format = "markdown",
+    longtable = T,
+  linesep = "\\addlinespace",
+  caption = "Request for followup",
+  col.names = c("Respondent", "Response")
+  ) %>%
+#  pack_rows (index = table(followup$role)) %>% # no mentees completed this question, so x this out
+  column_spec (column = 2, width = "14cm") %>%
+  styler_pdf()
+
+
+```
+
+
+\
+
+If you have any questions, please contact Dr Jen Beaudry, Manager, Researcher Training, Development and Communication in Research Development and Support. 
+
