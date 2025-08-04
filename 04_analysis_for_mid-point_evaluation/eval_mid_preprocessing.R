@@ -81,8 +81,8 @@ df_tee$role <- "mentee"
 
 
 #use string replace when you can't write out the full cell
-#df_tor$expectations_comment <- str_replace(df_tor$expectations_comment, "Jenni", "my mentee")
-#df_tor$meeting_experiences <- str_replace(df_tor$meeting_experiences, "Jenni", "my mentee")
+df_tee$expectations_comment <- str_replace(df_tee$expectations_comment, "Yee", "My mentor")
+df_tee$meeting_experiences <- str_replace(df_tee$meeting_experiences, "Yess", "my mentor's")
 
 # df_tee [df_tee == "Once"] <- "1"
 # df_tee [df_tee == "once face to face, multiple email communications"] <- "1"
