@@ -365,7 +365,7 @@ knitr::kable (booktabs = T, linesep = "",
               col.names = c("College", "Number", "Percentage", "Number", "Percentage"), 
               caption = "Breakdown of Mentors and Mentees by College",
               align = 'lcc') %>% 
-    add_header_above(c(" " = 1, "Mentors (n = 38)" = 2, "Mentees (n = 38)" = 2)) %>% 
+    add_header_above(c(" " = 1, "Mentors (n = 37)" = 2, "Mentees (n = 37)" = 2)) %>% 
   styler_pdf() 
 
 
