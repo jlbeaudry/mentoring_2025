@@ -394,8 +394,6 @@ having met between six to eight times. A few partners have met less than we woul
 like at this point, with `r (meetings_summary %>% filter(meetings == "Once or twice") %>% reframe(sum(n)))`
 having met only once or twice. 
 
-\newpage
-
 `r fig_nums(name = "meetings", display = "cite")` shows how frequently 
 mentees and mentors reported meeting thus far. Given that this is an anonymous 
 survey, we do not know if these data are linked across the two cohorts. 
@@ -407,7 +405,7 @@ ggplot(meetings_summary, aes(y = n, x = meetings)) +
   geom_bar(stat="identity", fill = "lightblue", colour = "black") +
   facet_wrap(vars(role)) +
   labs (x = element_blank(),
-        y = "Frequency") +
+        y = "Count") +
   theme_classic() +
 theme(legend.title = element_blank()) +
     coord_flip() +
@@ -627,8 +625,6 @@ about how to set boundaries and expectations with their mentors; not all mentees
 and mentors will need this type of resource. Mentees and mentors rated all other 
 aspects of the program very highly. 
 
-\newpage
-
 `r fig_nums(name = "comm_ratings_summary", display = "cite")` shows a breakdown 
 of ratings for items that both mentors and mentees completed.
 
@@ -834,8 +830,6 @@ For those that were able to attend, the mentors rated the mentor-specific compon
 Nearly all mentors believed that they were helping their mentee meet their 
 current and future career aspirations. 
 
-\newpage 
-
 `r fig_nums(name = "tor_ratings_summary", display = "cite")` shows a breakdown 
 of ratings to these questions that were specific to mentors.
 
@@ -1040,7 +1034,7 @@ agreed or strongly agreed to each item:
   get the most out of this program 
   (`r round(sum(info_session_ideas_agree$n)/sum(info_session_ideas$n)*100,0)`%).
 
-The mentees ratings aligned with the mentors reports---they believed that the 
+The mentees' ratings aligned with the mentors reports---they believed that the 
 advice and/or guidance their mentors provided is helping with their current
 aspirations and will be helpful for their future careers. The majority of respondents
 indicated that the 'Grant Writing: How to be a Narrative Ninja' Mentee Roundtable
@@ -1051,7 +1045,7 @@ subsequent questions.
 
 For completeness, this was the overview of the 'Grant Writing: How to be a Narrative Ninja' session: 
 
-This workshop will show you why narrative is so important and how to construct 
+<i>This workshop will show you why narrative is so important and how to construct 
 a narrative for a grant application or journal article. There will be demonstrations 
 of creating a narrative and opportunity to practice creating your own narrative 
 for either a part of your idea or your whole idea.
@@ -1063,7 +1057,7 @@ In this workshop you will learn:
  * the power of the 10-year-old, and if that doesn’t work, the border collie
  * how language gets in the way of narrative (initially) 
  * how to recognise narrative in others’ work
- * how to write the narrative of your own piece of work. 
+ * how to write the narrative of your own piece of work. </i>
 
 
 `r fig_nums(name = "tee_ratings_summary", display = "cite")` shows a breakdown 
@@ -1133,8 +1127,11 @@ scale_x_discrete(
 
 ```
 
+\newpage
 
 ## Additional comments about their experiences in the program
+
+### Experiences with meetings
 
 In this program, the mentors and mentees meet on their own 
 schedules based on their own needs and availability, so we have little oversight
@@ -1185,7 +1182,8 @@ styler_pdf
 
 
 ```
-  
+
+### Best parts of the program  
 
 We also asked participants to share the best parts of the program, so far 
 (see `r table_nums(name = "best_parts", display = "cite")`).  
@@ -1223,6 +1221,8 @@ knitr::kable(
 
 
 ```
+
+### Suggestions for improvement
 
 Participants were given an opportunity to share any suggestions for improvement
 that we could implement either this year or in future years
@@ -1265,8 +1265,11 @@ knitr::kable(
 
 ```
 
+\newpage
 
-Finally, participants were asked if there was anything else that they wanted 
+### Final comments
+
+Participants were asked if there was anything else that they wanted 
 us to know (see `r table_nums(name = "anything_else", display = "cite")`).
 
 ```{r anything_else_table, eval = TRUE}
