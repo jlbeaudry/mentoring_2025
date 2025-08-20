@@ -249,6 +249,12 @@ mentees (`r round((nrow(df %>% filter(role == "Mentee")) / n_mentee) *100, 0)`%)
 (`r round((nrow(df %>% filter(role == "Mentor")) / n_mentor) *100, 0)`%) 
 completed the survey. 
 
+Based on the responses to the various questions, both mentors and mentees
+are happy with how the program is progressing, they believe they were matched appropriately
+with their partners, their meetings are going well, and the resources provided to 
+them have been useful. The main suggestion for improvement is to provide more informal
+opportunities to connect with participants in the program. 
+
 ```{r expectations data, include = TRUE}
 
 expect_rate_mentee <- df %>% 
@@ -320,6 +326,18 @@ mentors who responded to the survey, `r sum(expect$role=='Mentee')` mentees prov
 explanations of how the program aligned with their expectations
 (see `r table_nums(name = "expect", display = "cite")`). 
 
+Overall, the mentors and mentees have reported positive experiences thus far.
+Most of the mentors 
+reported that their mentees have been engaged and proactive, which could be 
+attributed (at least in part) to the clear information and guidance provided in 
+the Mentee Information session and the Program Handbook. Most of the mentees indicated
+that their mentors were providing them with guidance about their future career goals. 
+Some mentees indicated that they received advice about grant applications, promotion
+applications, and future employment opportunities. Several mentors and mentees
+said that they were well matched with their partner, despite being matched with 
+partners outside of their College. 
+
+\newpage
 
 ```{r expectations_all_table}
 
@@ -369,7 +387,7 @@ meetings_summary <- df %>%
 
 Both mentees and mentors completed this question; we see the same patterns across
 both cohorts. Most mentee--mentor partners have met between three to five times, 
-which is right on track because the survey was 
+which is right on track; the survey was 
 completed approximately three months into the program. Some partners are meeting 
 more regularly, with several (n = `r (meetings_summary %>% filter(meetings == "Between six to eight times") %>% reframe(sum(n)))`)
 having met between six to eight times. A few partners have met less than we would
@@ -602,6 +620,13 @@ somewhat agreed or strongly agreed to each item:
   * They know who to contact if they have any issues with their partner
     (`r round(sum(contact_agree$n)/sum(contact$n)*100,0)`%).
 
+Taken together, the ratings were very positive. The utility of the mentoring 
+agreement received the lowest ratings, which is to be expected. The agreement is 
+designed as a tool to help those mentees who are less comfortable or are unsure
+about how to set boundaries and expectations with their mentors; not all mentees 
+and mentors will need this type of resource. Mentees and mentors rated all other 
+aspects of the program very highly. 
+
 \newpage
 
 `r fig_nums(name = "comm_ratings_summary", display = "cite")` shows a breakdown 
@@ -804,6 +829,11 @@ somewhat agreed or strongly agreed to each item:
   support their mentee 
   (`r round(sum(orientation_session_ideas_agree$n)/sum(orientation_session_ideas$n)*100,0)`%).
 
+For those that were able to attend, the mentors rated the mentor-specific components
+(i.e., mentor orientation session, mentor networking lunch) of the program very positively. 
+Nearly all mentors believed that they were helping their mentee meet their 
+current and future career aspirations. 
+
 \newpage 
 
 `r fig_nums(name = "tor_ratings_summary", display = "cite")` shows a breakdown 
@@ -1000,9 +1030,9 @@ agreed or strongly agreed to each item:
   current aspirations (`r round(sum(advice_current_agree$n)/sum(advice_current$n)*100,0)`%).
   * Their mentor is providing advice and/or guidance that will help them with 
   their future research career (`r round(sum(advice_future_agree$n)/sum(advice_future$n)*100,0)`%).
-  * The first Mentee Roundtable was informative 
+  * The first Mentee Roundtable ('Grant Writing: How to be a Narrative Ninja') was informative 
   (`r round(sum(roundtable_first_informative_agree$n)/sum(roundtable_first_informative$n)*100,0)`%).
-  * The first Mentee Roundtable was valuable 
+  * The first Mentee Roundtable ('Grant Writing: How to be a Narrative Ninja') was valuable 
  (`r round(sum(roundtable_first_valuable_agree$n)/sum(roundtable_first_valuable$n)*100,0)`%).
   * The mentee information session helped them to understand how the program works
   (`r round(sum(info_session_program_agree$n)/sum(info_session_program$n)*100,0)`%).
@@ -1010,7 +1040,31 @@ agreed or strongly agreed to each item:
   get the most out of this program 
   (`r round(sum(info_session_ideas_agree$n)/sum(info_session_ideas$n)*100,0)`%).
 
-\newpage
+The mentees ratings aligned with the mentors reports---they believed that the 
+advice and/or guidance their mentors provided is helping with their current
+aspirations and will be helpful for their future careers. The majority of respondents
+indicated that the 'Grant Writing: How to be a Narrative Ninja' Mentee Roundtable
+was valuable and informative; however, it wasn't rated as positively as the other
+mentee-specific components of the program (i.e., mentee information session). 
+Some mentees elaborated on their ratings for the 'Narrative Ninja' workshop in 
+subsequent questions. 
+
+For completeness, this was the overview of the 'Grant Writing: How to be a Narrative Ninja' session: 
+
+This workshop will show you why narrative is so important and how to construct 
+a narrative for a grant application or journal article. There will be demonstrations 
+of creating a narrative and opportunity to practice creating your own narrative 
+for either a part of your idea or your whole idea.
+
+In this workshop you will learn:
+
+ * why narrative is so important
+ * where you will find the narrative
+ * the power of the 10-year-old, and if that doesn’t work, the border collie
+ * how language gets in the way of narrative (initially) 
+ * how to recognise narrative in others’ work
+ * how to write the narrative of your own piece of work. 
+
 
 `r fig_nums(name = "tee_ratings_summary", display = "cite")` shows a breakdown 
 of ratings to these questions that were specific to mentees.
@@ -1067,8 +1121,8 @@ scale_x_discrete(
   labels = c(
     "The mentee information session \nprovided me with ideas about how \nI can get the most out of this program",
     "The mentee information session \nhelped me to understand \nhow this program works",
-    "The first Mentee Roundtable \nwas valuable",
-    "The first Mentee Roundtable \nwas informative",
+    "The 'Narrative Ninja' Mentee Roundtable \nwas valuable",
+    "The 'Narrative Ninja' Mentee Roundtable \nwas informative",
     "My mentor is providing advice \nand/or guidance that will \nhelp me with my future research career",
     "My mentor is providing advice \nand/or guidance that will \nhelp me with my current aspirations"
   )
@@ -1083,14 +1137,25 @@ scale_x_discrete(
 ## Additional comments about their experiences in the program
 
 In this program, the mentors and mentees meet on their own 
-schedules based on their own needs and availability, thus, we have little oversight
-over these encounters. Thus, it's critical to ask them how it is progressing and to give
-them an opportunity to identify any issues. As such, we asked several open-ended
-questions to get a better understanding of their experiences in the program, thus far.
+schedules based on their own needs and availability, so we have little oversight
+into their meetings and discussions. Thus, it's critical to ask them how it is 
+progressing and to give them an opportunity to identify any issues. As such, we 
+asked several open-ended questions to get a better understanding of their 
+experiences in the program, thus far.
 
 `r table_nums(name = "meeting_experiences", display = "cite")` shows the responses 
 from mentors and mentees about how their one-on-one sessions with their partner
 are progressing. 
+
+Overall, the mentors reported that their meetings with their mentees are going well, 
+with some indicating that their meetings are more informal whereas others
+reported that their meetings are more structured. The advice I provided at the outset
+was that they could adopt whatever approach worked best for their partnership, so 
+I am pleased to see that different pairs have taken different approaches. One mentor 
+reported using the Program Handbook and other resources to shift their meetings 
+from a manager-staff style meeting to a mentor-mentee approach. The mentees' responses
+mimic those of the mentors; the meetings are going well, with some adopted an 
+informal approach and others holding more formal meetings with agendas. 
 
 
 ```{r meetings_table}
@@ -1125,6 +1190,12 @@ styler_pdf
 We also asked participants to share the best parts of the program, so far 
 (see `r table_nums(name = "best_parts", display = "cite")`).  
 
+Common responses to the best parts of the program were the one-on-one meetings, 
+the match with their partner, the structure and support provided by the program, 
+and the opportunity to meet others (both mentees and mentors) outside of their own 
+Colleges. Several mentors said that they liked that they had a chance to give back 
+and to support their junior colleagues. 
+
 ```{r best_parts_table}
 
 best <- df %>% 
@@ -1156,6 +1227,17 @@ knitr::kable(
 Participants were given an opportunity to share any suggestions for improvement
 that we could implement either this year or in future years
 (see `r table_nums(name = "improvement", display = "cite")`). 
+
+The most common response was that no changes were required because the 
+program worked well as is. Nonetheless, some mentors suggested that mentees would
+benefit from more assistance with creating clear goals to guide their discussions 
+with their mentors, and that the mentors themselves would benefit from having 
+tangible examples of areas that they should discuss with their mentees. One mentee
+said that hybrid events would be useful for those travelling; however, with the 
+exception of the Mentor Networking Lunch, all events are offered as hybrid events 
+because we have two mentees in the Northern Territory. Other mentees suggested
+that it would be useful to have more opportunities to connect with mentees and 
+mentors outside of the formal program. 
 
 ```{r improvement_table, eval = TRUE}
 
