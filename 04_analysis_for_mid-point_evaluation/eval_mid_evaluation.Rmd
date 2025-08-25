@@ -250,9 +250,9 @@ mentees (`r round((nrow(df %>% filter(role == "Mentee")) / n_mentee) *100, 0)`%)
 completed the survey. 
 
 Based on the responses to the various questions, both mentors and mentees
-are happy with how the program is progressing, they believe they were matched appropriately
+are happy with how the program is progressing, they believe they are matched appropriately
 with their partners, their meetings are going well, and the resources provided to 
-them have been useful. The main suggestion for improvement is to provide more informal
+them are useful. The main suggestion for improvement is to provide more informal
 opportunities to connect with participants in the program. 
 
 ```{r expectations data, include = TRUE}
@@ -322,8 +322,8 @@ indicated that it met their expectations and
 indicated that it partly met their expectations. 
 No mentees indicated that it did not meet their expectations.
 Of the `r expect_rate_mentee[[3]] %>% sum` 
-mentors who responded to the survey, `r sum(expect$role=='Mentee')` mentees provided 
-explanations of how the program aligned with their expectations
+mentees who responded to the survey, `r sum(expect$role=='Mentee')` mentees 
+provided explanations of how the program aligned with their expectations
 (see `r table_nums(name = "expect", display = "cite")`). 
 
 Overall, the mentors and mentees have reported positive experiences thus far.
@@ -1041,27 +1041,11 @@ indicated that the 'Grant Writing: How to be a Narrative Ninja' Mentee Roundtabl
 was valuable and informative; however, it wasn't rated as positively as the other
 mentee-specific components of the program (i.e., mentee information session). 
 Some mentees elaborated on their ratings for the 'Narrative Ninja' workshop in 
-subsequent questions. 
-
-For completeness, this was the overview of the 'Grant Writing: How to be a Narrative Ninja' session: 
-
-<i>This workshop will show you why narrative is so important and how to construct 
-a narrative for a grant application or journal article. There will be demonstrations 
-of creating a narrative and opportunity to practice creating your own narrative 
-for either a part of your idea or your whole idea.
-
-In this workshop you will learn:
-
- * why narrative is so important
- * where you will find the narrative
- * the power of the 10-year-old, and if that doesn’t work, the border collie
- * how language gets in the way of narrative (initially) 
- * how to recognise narrative in others’ work
- * how to write the narrative of your own piece of work. </i>
-
+subsequent questions.
 
 `r fig_nums(name = "tee_ratings_summary", display = "cite")` shows a breakdown 
 of ratings to these questions that were specific to mentees.
+
 
 ```{r plot the ratings for mentees}
 
@@ -1127,14 +1111,32 @@ scale_x_discrete(
 
 ```
 
+### Grant writing: How to be a Narrative Ninja
+
+For context, this was the overview of the 'Grant Writing: How to be a Narrative Ninja' session: 
+
+<i>This workshop will show you why narrative is so important and how to construct 
+a narrative for a grant application or journal article. There will be demonstrations 
+of creating a narrative and opportunity to practice creating your own narrative 
+for either a part of your idea or your whole idea.
+
+In this workshop you will learn:
+
+ * why narrative is so important
+ * where you will find the narrative
+ * the power of the 10-year-old, and if that doesn’t work, the border collie
+ * how language gets in the way of narrative (initially) 
+ * how to recognise narrative in others’ work
+ * how to write the narrative of your own piece of work. </i>
+
+
 \newpage
 
 ## Additional comments about their experiences in the program
 
 ### Experiences with meetings
 
-In this program, the mentors and mentees meet on their own 
-schedules based on their own needs and availability, so we have little oversight
+In this program, the mentors and mentees meet together according to their own needs and availability, so we have little oversight
 into their meetings and discussions. Thus, it's critical to ask them how it is 
 progressing and to give them an opportunity to identify any issues. As such, we 
 asked several open-ended questions to get a better understanding of their 
@@ -1151,7 +1153,7 @@ was that they could adopt whatever approach worked best for their partnership, s
 I am pleased to see that different pairs have taken different approaches. One mentor 
 reported using the Program Handbook and other resources to shift their meetings 
 from a manager-staff style meeting to a mentor-mentee approach. The mentees' responses
-mimic those of the mentors; the meetings are going well, with some adopted an 
+mimic those of the mentors; the meetings are going well, with some adopting an 
 informal approach and others holding more formal meetings with agendas. 
 
 
@@ -1229,7 +1231,7 @@ that we could implement either this year or in future years
 (see `r table_nums(name = "improvement", display = "cite")`). 
 
 The most common response was that no changes were required because the 
-program worked well as is. Nonetheless, some mentors suggested that mentees would
+program is working well. Nonetheless, some mentors suggested that mentees would
 benefit from more assistance with creating clear goals to guide their discussions 
 with their mentors, and that the mentors themselves would benefit from having 
 tangible examples of areas that they should discuss with their mentees. One mentee
