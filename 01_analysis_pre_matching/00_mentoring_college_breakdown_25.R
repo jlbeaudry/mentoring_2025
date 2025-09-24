@@ -24,10 +24,25 @@
   # point in running the same code repeatedly across the different files.
 
 
+# Function to load or install packages
+load_or_install <- function(packages) {
+  for (package in packages) {
+    if (!require(package, character.only = TRUE)) {
+      install.packages(package, dependencies = TRUE)
+      library(package, character.only = TRUE)
+    }
+  }
+}
 
-library(here)
-library(tidyverse)
-library(xlsx)
+# Required packages 
+packages <- c("here"
+              , "tidyverse"
+              , "xlsx"
+)
+
+# Load or install the packages
+load_or_install(packages)
+
 
 source(here("..", "functions", "read_qualtrics.R"))
 source(here("..", "functions", "meta_rename.R"))
