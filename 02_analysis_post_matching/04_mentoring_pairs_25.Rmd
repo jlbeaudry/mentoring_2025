@@ -448,7 +448,7 @@ knitr::kable (
 
 # \newpage
 # 
-# Table \ref{tab:mentor_details} shows the details of the mentees who were selected 
+# Table \ref{tab:mentee_details} shows the details of the mentees who were selected 
 # to participate in the program. 
 
 
